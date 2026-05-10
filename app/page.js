@@ -171,10 +171,10 @@ export default function Home() {
     };
 
     return (
-        <main className="min-h-screen">
+        <main className="min-h-screen mx-8">
             <Formulaire data={formData} onChange={setFormData} />
 
-            <div className="min-h-screen text-slate-900 pt-4 pb-8 sm:px-8 bg-transparent">
+            <div className="min-h-screen text-slate-900 pt-4 pb-8 bg-transparent">
                 <div className="mx-auto grid gap-8">
                     <div className="grid gap-8 min-[990px]:min-w-[990px] min-[990px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
                         <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">

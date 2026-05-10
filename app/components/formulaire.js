@@ -18,7 +18,7 @@ export default function Formulaire({ data, onChange }) {
     };
 
     return (
-        <div className="min-h-screen text-slate-900 pt-8 pb-4 sm:px-8 bg-transparent">
+        <div className="min-h-screen text-slate-900 pt-8 pb-4 bg-transparent">
 
             <header className="text-center text-white mb-7">
                 <h1 className='text-[1.8rem] mb-2 font-bold tracking-tight sm:text-[2.5rem]'>🦁 Lions Club</h1>
@@ -26,7 +26,7 @@ export default function Formulaire({ data, onChange }) {
             </header>
 
             <div className="mx-auto grid gap-8">
-                <div className="grid gap-8 min-[990px]:min-w-[990px] min-[990px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="📋 Informations de la réunion" />
                         <div className="grid gap-6 sm:grid-cols-1">
@@ -89,7 +89,7 @@ export default function Formulaire({ data, onChange }) {
                     </section>
                 </div>
 
-                <div className="grid gap-8 min-[990px]:min-w-[990px] min-[990px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="👥 Participants" />
                         <div className="grid gap-6 sm:grid-cols-2">
@@ -119,7 +119,7 @@ export default function Formulaire({ data, onChange }) {
                     </section>
                 </div>
 
-                <div className="grid gap-8 min-[990px]:min-w-[990px] min-[990px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="🎤 Interventions générales" />
                         <TextareaField label="Mot éventuel du président" placeholder="Entrez le mot du président..." htmlFor="presidentWord" value={formData.presidentWord} onChange={(value) => updateField('presidentWord', value)} />
@@ -128,7 +128,7 @@ export default function Formulaire({ data, onChange }) {
                     </section>
                 </div>
 
-                <div className="grid gap-8 min-[990px]:min-w-[990px] min-[990px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="📬 Secrétariat" />
                         <TextareaField label="Courriers reçus" placeholder="Détail les courriers reçus..." htmlFor="receivedMails" value={formData.receivedMails} onChange={(value) => updateField('receivedMails', value)} />
@@ -136,7 +136,7 @@ export default function Formulaire({ data, onChange }) {
                     </section>
                 </div>
 
-                <div className="grid gap-8 min-[990px]:min-w-[990px] min-[990px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="💰 Trésorerie" />
                         <div className="grid gap-6 sm:grid-cols-2">
@@ -197,7 +197,7 @@ export default function Formulaire({ data, onChange }) {
                     </section>
                 </div>
 
-                <div className="grid gap-8 min-[990px]:min-w-[990px] min-[990px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="📊 Commissions" />
                         <TextareaField label="POINT EME (Effectif)" placeholder="Points sur l'effectif..." htmlFor="pointEME" value={formData.pointEME} onChange={(value) => updateField('pointEME', value)} />
@@ -208,7 +208,7 @@ export default function Formulaire({ data, onChange }) {
                     </section>
                 </div>
 
-                <div className="grid gap-8 min-[990px]:min-w-[990px] min-[990px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="📢 Autres points" />
                         <TextareaField label="Point Marketing et Communication" placeholder="Informations marketing et communication..." htmlFor="marketing" value={formData.marketing} onChange={(value) => updateField('marketing', value)} />
