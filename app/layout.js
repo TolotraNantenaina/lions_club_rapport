@@ -1,0 +1,36 @@
+import './globals.css';
+
+export const metadata = {
+  title: 'Lions Club Rapport',
+  description: 'Générez un compte-rendu de réunion Lions Club avec aperçu et export JPG.',
+  opensGraph: {
+    title: 'Lions Club Rapport',
+    description: 'Générez un compte-rendu de réunion Lions Club avec aperçu et export JPG.',
+    url: 'https://compte-rendu-lc.netlify.app',
+    siteName: 'Lions Club Rapport',
+    images: [
+      {
+        url: 'https://compte-rendu-lc.netlify.app/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Lions Club Rapport - Générateur de compte-rendu de réunion',
+      },
+    ],
+    locale: 'fr_FR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Lions Club Rapport',
+    description: 'Générez un compte-rendu de réunion Lions Club avec aperçu et export JPG.',
+    images: ['https://compte-rendu-lc.netlify.app/og-image.png'],
+  },
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="fr">
+      <body className="bg-body">{children}</body>
+    </html>
+  );
+}

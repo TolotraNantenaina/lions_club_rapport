@@ -1,0 +1,177 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --primary: #1a3a52;
+  --secondary: #d4af37;
+  --accent: #2c5aa0;
+  --light-bg: #f8f6f1;
+  --text-dark: #2c2c2c;
+  --border: #d4d4d4;
+  --success: #4caf50;
+  --light-grey: #e9e9ed;
+  --dark-grey: #757575;
+  --bg-light: #e0e0e0;
+  --bg-primary-dark: #0f2135;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: linear-gradient(135deg, #0f2135 0%, #1a3a52 100%);
+}
+
+body {
+  color: #2c2c2c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(44, 90, 160, 0.2);
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-bottom: 12px;
+  font-size: 1em;
+  line-height: 1.5;
+  color: var(--text-dark);
+  background: white;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 48px;
+  display: block;
+}
+
+select.form-input {
+  background: var(--light-grey);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #2c5aa0;
+  box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.12);
+}
+
+.form-textarea {
+  height: auto;
+  min-height: 100px;
+  resize: vertical;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--dark-grey);
+}
+
+/* Specific for date/time inputs to ensure text alignment */
+input[type="date"].form-input,
+input[type="time"].form-input {
+  text-align: left;
+  padding-left: 12px;
+}
+
+.text-primary {
+    color: var(--primary);
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  padding: 0.95rem 1.25rem;
+  font-weight: 700;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-primary {
+  background: #1a3a52;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2c5aa0;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px rgba(26, 58, 82, 0.18);
+}
+
+.btn-secondary {
+  background: #d4af37;
+  color: #1a3a52;
+}
+
+.btn-secondary:hover {
+  background: #e5c158;
+  transform: translateY(-1px);
+}
+
+.btn-reset {
+  background: #e0e0e0;
+  color: #2c2c2c;
+}
+
+.btn-reset:hover {
+  background: #d0d0d0;
+}
+
+.light-bg {
+  background-color: var(--light-bg);
+}
+
+.bg-light {
+  background-color: var(--bg-light);
+}
+
+.bg-light-grey {
+  background-color: var(--light-grey);
+}
+
+.text-light-grey {
+  color: var(--light-grey);
+}
+
+.text-dark-grey {
+  color: var(--dark-grey);
+}
+
+.bg-body {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--bg-primary-dark) 100%);
+}
+
+.bg-body-reverse {
+  background: linear-gradient(135deg, var(--bg-primary-dark) 0%, var(--primary) 100%);
+}
+
+.bg-transparent {
+  background: transparent;
+}
+
+.text-accent {
+    color: var(--accent);
+}
