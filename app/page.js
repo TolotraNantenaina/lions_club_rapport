@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { initialData } from './constantes/initialData';
 import Formulaire from './components/formulaire';
-import { PreviewCRp1, PreviewCRp2 } from './components/preview';
+import { getPreviewCRBlocks, PAGE_HEIGHT, PAGE_WIDTH, PreviewCRPage } from './components/preview';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ProcessingLoader } from './components/processingLoader';
 import { base64ToBlob } from './helpers/bas64ToBlob';
@@ -50,104 +50,126 @@ export default function Home() {
         }
     };
 
-    const apercuJpg = async () => {
-        const prevuePages = [<PreviewCRp1 data={formData} />, <PreviewCRp2 data={formData} />];
+    const createPreviewContainer = (htmlString) => {
+        const tempDiv = document.createElement('div');
+        tempDiv.style.width = `${PAGE_WIDTH}px`;
+        tempDiv.style.height = `${PAGE_HEIGHT}px`;
+        tempDiv.style.background = '#ffffff';
+        tempDiv.style.position = 'fixed';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.top = '0';
+        tempDiv.style.zIndex = '9999';
+        tempDiv.innerHTML = htmlString;
+        document.body.appendChild(tempDiv);
 
-        const htmlStrings = prevuePages.map((Page) => renderToStaticMarkup(Page));
+        return tempDiv;
+    };
 
-        const imagesUrls = await Promise.all(htmlStrings.map(async (htmlString) => {
-            const tempDiv = document.createElement('div');
-            tempDiv.style.width = '1240px';
-            tempDiv.style.height = '1740px';
-            tempDiv.style.background = '#ffffff';
-            tempDiv.style.position = 'fixed';
-            tempDiv.style.left = '-9999px';
-            tempDiv.style.top = '0';
-            tempDiv.style.zIndex = '9999';
-            tempDiv.innerHTML = htmlString;
-            document.body.appendChild(tempDiv);
+    const isPreviewPageOverflowing = (blocks, pageNumber) => {
+        const htmlString = renderToStaticMarkup(<PreviewCRPage blocks={blocks} pageNumber={pageNumber} />);
+        const tempDiv = createPreviewContainer(htmlString);
+        const pageElement = tempDiv.querySelector('article') || tempDiv.firstElementChild;
+        const contentElement = tempDiv.querySelector('[data-preview-flow="true"]');
 
-            try {
-                const canvas = await html2canvas(tempDiv, {
-                    scale: 2,
-                    backgroundColor: '#ffffff',
-                    useCORS: true,
-                    allowTaint: true,
-                    width: 1240,
-                    height: 1740,
-                    windowHeight: tempDiv.scrollHeight,
-                    logging: false, // Disable logging for cleaner output
-                    letterRendering: true, // Better text rendering
-                });
+        if (!pageElement || !contentElement) {
+            document.body.removeChild(tempDiv);
+            return false;
+        }
 
-                return canvas.toDataURL('image/jpeg', 0.95);
-            } catch (error) {
-                console.error(error);
-                showToast('❌ Erreur lors de la génération de l’aperçu');
-                return null;
+        const pageRect = pageElement.getBoundingClientRect();
+        const contentRect = contentElement.getBoundingClientRect();
+        const isOverflowing = contentRect.bottom > pageRect.bottom;
+
+        document.body.removeChild(tempDiv);
+
+        return isOverflowing;
+    };
+
+    const buildDynamicPreviewPages = () => {
+        const blocks = getPreviewCRBlocks(formData);
+        const pages = [];
+        let currentBlocks = [];
+
+        blocks.forEach((block) => {
+            const candidateBlocks = [...currentBlocks, block];
+            const pageNumber = pages.length + 1;
+
+            if (currentBlocks.length > 0 && isPreviewPageOverflowing(candidateBlocks, pageNumber)) {
+                pages.push(currentBlocks);
+                currentBlocks = [block];
+            } else {
+                currentBlocks = candidateBlocks;
             }
-        }));
+        });
 
-        const validImages = imagesUrls.filter(url => url !== null);
+        if (currentBlocks.length > 0) {
+            pages.push(currentBlocks);
+        }
+
+        return pages.map((blocks, index) => (
+            <PreviewCRPage key={`preview-cr-${index}`} blocks={blocks} pageNumber={index + 1} />
+        ));
+    };
+
+    const renderHtmlToJpg = async (htmlString, errorMessage) => {
+        const tempDiv = createPreviewContainer(htmlString);
+
+        try {
+            const canvas = await html2canvas(tempDiv, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                allowTaint: true,
+                width: PAGE_WIDTH,
+                height: PAGE_HEIGHT,
+                windowHeight: PAGE_HEIGHT,
+                logging: false,
+                letterRendering: true,
+                onclone: (clonedDoc) => {
+                    const inputs = clonedDoc.querySelectorAll('input, select, textarea');
+                    inputs.forEach(input => {
+                        input.style.boxSizing = 'border-box';
+                        input.style.appearance = 'none';
+                        input.style.webkitAppearance = 'none';
+                    });
+                }
+            });
+
+            return canvas.toDataURL('image/jpeg', 0.95);
+        } catch (error) {
+            console.error(error);
+            showToast(errorMessage);
+            return null;
+        } finally {
+            document.body.removeChild(tempDiv);
+        }
+    };
+
+    const generatePreviewImages = async (errorMessage) => {
+        await document.fonts.ready;
+
+        const prevuePages = buildDynamicPreviewPages();
+        const htmlStrings = prevuePages.map((Page) => renderToStaticMarkup(Page));
+        const imagesUrls = await Promise.all(
+            htmlStrings.map((htmlString) => renderHtmlToJpg(htmlString, errorMessage))
+        );
+
+        return imagesUrls.filter(Boolean);
+    };
+
+    const apercuJpg = async () => {
+        setApercuLoading(true);
+        setApercuValide(false);
+
+        const validImages = await generatePreviewImages('❌ Erreur lors de la génération de l’aperçu');
         setApercuUrls(validImages);
         setApercuValide(true);
+        setApercuLoading(false);
     };
 
     const exportJpg = async () => {
         showToast('⏳ Génération en cours...');
-
-        // Wait for fonts to load
-        await document.fonts.ready;
-
-
-        const prevuePages = [<PreviewCRp1 data={formData} />, <PreviewCRp2 data={formData} />];
-
-        const htmlStrings = prevuePages.map((Page) => renderToStaticMarkup(Page));
-
-        const imagesUrls = await Promise.all(htmlStrings.map(async (htmlString) => {
-
-            const tempDiv = document.createElement('div');
-            tempDiv.style.width = '1240px';
-            tempDiv.style.height = '1740px';
-            tempDiv.style.background = '#ffffff';
-            tempDiv.style.position = 'fixed';
-            tempDiv.style.left = '-9999px';
-            tempDiv.style.top = '0';
-            tempDiv.style.zIndex = '9999';
-            tempDiv.innerHTML = htmlString;
-            document.body.appendChild(tempDiv);
-
-            try {
-                const canvas = await html2canvas(tempDiv, {
-                    scale: 2,
-                    backgroundColor: '#ffffff',
-                    useCORS: true,
-                    allowTaint: true,
-                    width: 1240,
-                    height: 1740,
-                    windowHeight: tempDiv.scrollHeight,
-                    logging: false, // Disable logging for cleaner output
-                    letterRendering: true, // Better text rendering
-                    onclone: (clonedDoc) => {
-                        // Ensure all elements have proper styles in cloned document
-                        const inputs = clonedDoc.querySelectorAll('input, select, textarea');
-                        inputs.forEach(input => {
-                            input.style.boxSizing = 'border-box';
-                            input.style.appearance = 'none';
-                            input.style.webkitAppearance = 'none';
-                        });
-                    }
-                });
-
-                return canvas.toDataURL('image/jpeg', 0.95);
-            } catch (error) {
-                console.error(error);
-                showToast('❌ Erreur lors de la génération du JPG');
-                return null;
-            } finally {
-                document.body.removeChild(tempDiv);
-            }
-        }));
+        const imagesUrls = await generatePreviewImages('❌ Erreur lors de la génération du JPG');
 
         const our = new Date().getHours();
         const min = new Date().getMinutes();

@@ -4,7 +4,10 @@ import { SectionHeading } from './sectionHeading';
 import { TextareaField } from './textareaField';
 import { formatDate } from '../helpers/formatDate';
 
-const pageClassName = 'h-[1740px] w-[1240px] bg-white px-[110px] py-[70px] text-[26px] leading-snug text-slate-950';
+export const PAGE_WIDTH = 1240;
+export const PAGE_HEIGHT = 1740;
+
+const pageClassName = 'h-[1740px] w-[1240px] overflow-hidden bg-white px-[110px] py-[70px] text-[26px] leading-snug text-slate-950';
 
 function valueOrDash(value) {
     return value || 'Non renseigné';
@@ -19,6 +22,27 @@ function toLines(value) {
     return value
         ? value.split('\n').map((line) => line.trim()).filter(Boolean)
         : [];
+}
+
+function splitLongLine(line, maxLength = 320) {
+    if (line.length <= maxLength) return [line];
+
+    const chunks = [];
+    let remaining = line;
+
+    while (remaining.length > maxLength) {
+        const splitIndex = remaining.lastIndexOf(' ', maxLength);
+        const safeIndex = splitIndex > 0 ? splitIndex : maxLength;
+
+        chunks.push(remaining.slice(0, safeIndex).trim());
+        remaining = remaining.slice(safeIndex).trim();
+    }
+
+    if (remaining) {
+        chunks.push(remaining);
+    }
+
+    return chunks;
 }
 
 function HeaderCR() {
@@ -74,6 +98,190 @@ function SignatureBlock({ title, name }) {
             <p className="font-bold">{name}</p>
             <div className="mt-7 h-[70px] w-[160px]" />
         </div>
+    );
+}
+
+function buildBulletBlocks(value) {
+    const lines = toLines(value);
+
+    if (lines.length === 0) {
+        return [{ type: 'empty' }];
+    }
+
+    return lines.flatMap((line) => {
+        return splitLongLine(line).map((text, index) => ({
+            type: index === 0 ? 'bullet' : 'continuation',
+            text,
+        }));
+    });
+}
+
+function buildTextSection(title, value) {
+    return [
+        { type: 'sectionTitle', title },
+        ...buildBulletBlocks(value),
+    ];
+}
+
+function buildGroupedSection(title, groups) {
+    return [
+        { type: 'sectionTitle', title },
+        ...groups.flatMap((group) => [
+            { type: 'subTitle', title: group.title },
+            ...buildBulletBlocks(group.value),
+        ]),
+    ];
+}
+
+export function getPreviewCRBlocks(data) {
+    const titleDate = data.meetingDate ? formatDate(data.meetingDate) : 'date non renseignée';
+    const participants = [
+        `${valueOrDash(data.memberPresent)} présents`,
+        `${valueOrDash(data.memberExcused)} excusés`,
+        `${valueOrDash(data.memberAbsent)} absents`,
+        `${valueOrDash(data.guests)} invités`,
+        `${valueOrDash(data.memberTotal)} membres au total`,
+    ].join(' - ');
+    const treasuryItems = [
+        ['Solde compte administratif', data.adminBalance],
+        ['Solde compte œuvre', data.worksBalance],
+        ['Cotisation Siège', data.headQuartersFees],
+        ['Cotisation District', data.districtFees],
+        ['Cotisation Région', data.regionFees],
+    ];
+
+    return [
+        {
+            type: 'intro',
+            reunionType: valueOrDash(data.reunionType),
+            titleDate,
+            location: valueOrDash(data.location),
+            participants,
+            startTime: formatTime(data.startTime) || 'Non renseigné',
+        },
+        ...buildTextSection('1/ Mot éventuel du président', data.presidentWord),
+        ...buildTextSection('2/ Rappel de l’ordre du jour', data.orderOfDay),
+        ...buildTextSection('3/ Approbation du compte-rendu de réunion statutaire', data.approvalPV),
+        ...buildGroupedSection('4/ Secrétariat', [
+            { title: 'Courriers reçus', value: data.receivedMails },
+            { title: 'Courriers envoyés', value: data.sentMails },
+        ]),
+        { type: 'sectionTitle', title: '5/ Trésorerie' },
+        ...treasuryItems.map(([label, value]) => ({ type: 'labelLine', label, value: valueOrDash(value) })),
+        ...buildBulletBlocks(data.treasuryOther),
+        ...buildGroupedSection('6/ Commissions et actions', [
+            { title: 'POINT EME (Effectif)', value: data.pointEME },
+            { title: 'POINT EML (Formation)', value: data.pointEML },
+            { title: 'POINT EMS (Service-Oeuvres)', value: data.pointEMS },
+            { title: 'Actions en cours', value: data.ongoingActions },
+            { title: 'Point LCIF', value: data.pointLCIF },
+        ]),
+        ...buildGroupedSection('7/ Divers et tour de table', [
+            { title: 'Marketing et communication', value: data.marketing },
+            { title: 'Programme du mois', value: data.monthProgram },
+            { title: 'Divers', value: data.miscellaneous },
+        ]),
+        {
+            type: 'footer',
+            endTime: formatTime(data.endTime) || 'Non renseigné',
+            meetingDate: data.meetingDate ? new Date(data.meetingDate).toLocaleDateString('fr-FR') : 'Non renseigné',
+        },
+    ];
+}
+
+function CRBlock({ block }) {
+    if (block.type === 'intro') {
+        return (
+            <>
+                <div className="mb-10 text-center">
+                    <h2 className="text-[23px] font-black uppercase">Compte rendu de la réunion statutaire</h2>
+                    <p className="text-[21px] font-bold uppercase">
+                        {block.reunionType} du {block.titleDate}
+                    </p>
+                    <p className="mt-2 text-[20px] font-semibold">Lieu : {block.location}</p>
+                </div>
+
+                <p className="mb-8 text-[21px]">
+                    <span className="font-black">Présents :</span> {block.participants}
+                </p>
+
+                <p className="mb-10 text-[21px] font-bold">
+                    Début de la réunion : {block.startTime}
+                </p>
+            </>
+        );
+    }
+
+    if (block.type === 'sectionTitle') {
+        return <h3 className="mb-2 mt-8 text-[23px] font-black">{block.title}</h3>;
+    }
+
+    if (block.type === 'subTitle') {
+        return <p className="mb-1 mt-4 text-[21px] font-bold">{block.title}</p>;
+    }
+
+    if (block.type === 'labelLine') {
+        return (
+            <p className="ml-10 text-[21px] leading-snug">
+                <span className="mr-3">•</span>
+                <span className="font-bold">{block.label} :</span> {block.value}
+            </p>
+        );
+    }
+
+    if (block.type === 'bullet') {
+        return (
+            <p className="ml-10 text-[21px] leading-snug">
+                <span className="mr-3">•</span>
+                {block.text}
+            </p>
+        );
+    }
+
+    if (block.type === 'continuation') {
+        return (
+            <p className="ml-[72px] text-[21px] leading-snug">
+                {block.text}
+            </p>
+        );
+    }
+
+    if (block.type === 'empty') {
+        return <p className="pl-8 text-[21px] text-slate-500">Non renseigné</p>;
+    }
+
+    if (block.type === 'footer') {
+        return (
+            <footer className="mt-16 text-[21px]">
+                <div className="mb-14 flex justify-between font-bold">
+                    <p>Fin de séance : {block.endTime}</p>
+                    <p>Saint Denis le {block.meetingDate}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-28">
+                    <SignatureBlock title="Le Président" name="Nom à renseigner" />
+                    <SignatureBlock title="La secrétaire" name="Nom à renseigner" />
+                </div>
+            </footer>
+        );
+    }
+
+    return null;
+}
+
+export function PreviewCRPage({ blocks, pageNumber }) {
+    return (
+        <article className={pageClassName}>
+            <div data-preview-flow="true">
+                <HeaderCR />
+                <div className="space-y-1">
+                    {blocks.map((block, index) => (
+                        <CRBlock key={`${block.type}-${block.title || block.label || block.text || index}`} block={block} />
+                    ))}
+                </div>
+                {/*<p className="mt-6 text-right text-[16px] text-slate-500">Page {pageNumber}</p>*/}
+            </div>
+        </article>
     );
 }
 
