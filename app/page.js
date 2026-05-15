@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { initialData } from './constantes/initialData';
 import Formulaire from './components/formulaire';
-import { getPreviewCRBlocks, PAGE_HEIGHT, PAGE_WIDTH, PreviewCRPage } from './components/preview';
+import { getPreviewCRBlocks, PreviewCRPage , PAGE_HEIGHT, PAGE_WIDTH, PAGE_BOTTOM_SAFE_SPACE} from './components/preview';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ProcessingLoader } from './components/processingLoader';
 import { base64ToBlob } from './helpers/bas64ToBlob';
@@ -78,7 +78,7 @@ export default function Home() {
 
         const pageRect = pageElement.getBoundingClientRect();
         const contentRect = contentElement.getBoundingClientRect();
-        const isOverflowing = contentRect.bottom > pageRect.bottom;
+        const isOverflowing = contentRect.bottom > pageRect.bottom - PAGE_BOTTOM_SAFE_SPACE;
 
         document.body.removeChild(tempDiv);
 

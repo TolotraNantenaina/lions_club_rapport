@@ -6,6 +6,7 @@ import { formatDate } from '../helpers/formatDate';
 
 export const PAGE_WIDTH = 1240;
 export const PAGE_HEIGHT = 1740;
+export const PAGE_BOTTOM_SAFE_SPACE = 200;
 
 const pageClassName = 'h-[1740px] w-[1240px] overflow-hidden bg-white px-[110px] py-[70px] text-[26px] leading-snug text-slate-950';
 
@@ -255,7 +256,7 @@ function CRBlock({ block }) {
             <footer className="mt-16 text-[21px]">
                 <div className="mb-14 flex justify-between font-bold">
                     <p>Fin de séance : {block.endTime}</p>
-                    <p>Saint Denis le {block.meetingDate}</p>
+                    <p>{'<--Lieu non renseigné -->'} le {block.meetingDate}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-28">
@@ -285,123 +286,11 @@ export function PreviewCRPage({ blocks, pageNumber }) {
     );
 }
 
-export function PreviewCRp1({ data }) {
-    const titleDate = data.meetingDate ? formatDate(data.meetingDate) : 'date non renseignée';
-    const participants = [
-        `${valueOrDash(data.memberPresent)} présents`,
-        `${valueOrDash(data.memberExcused)} excusés`,
-        `${valueOrDash(data.memberAbsent)} absents`,
-        `${valueOrDash(data.guests)} invités`,
-        `${valueOrDash(data.memberTotal)} membres au total`,
-    ].join(' - ');
-
-    const treasuryItems = [
-        ['Solde compte administratif', data.adminBalance],
-        ['Solde compte œuvre', data.worksBalance],
-        ['Cotisation Siège', data.headQuartersFees],
-        ['Cotisation District', data.districtFees],
-        ['Cotisation Région', data.regionFees],
-    ];
-
-    return (
-        <article className={pageClassName}>
-            <HeaderCR />
-
-            <div className="mb-10 text-center">
-                <h2 className="text-[23px] font-black uppercase">Compte rendu de la réunion statutaire</h2>
-                <p className="text-[21px] font-bold uppercase">
-                    {valueOrDash(data.reunionType)} du {titleDate}
-                </p>
-                <p className="mt-2 text-[20px] font-semibold">Lieu : {valueOrDash(data.location)}</p>
-            </div>
-
-            <p className="mb-8 text-[21px]">
-                <span className="font-black">Présents :</span> {participants}
-            </p>
-
-            <p className="mb-10 text-[21px] font-bold">
-                Début de la réunion : {formatTime(data.startTime) || 'Non renseigné'}
-            </p>
-
-            <TextBlock title="1/ Mot éventuel du président">
-                <BulletList value={data.presidentWord} />
-            </TextBlock>
-
-            <TextBlock title="2/ Rappel de l’ordre du jour">
-                <BulletList value={data.orderOfDay} />
-            </TextBlock>
-
-            <TextBlock title="3/ Approbation du compte-rendu de réunion statutaire">
-                <BulletList value={data.approvalPV} />
-            </TextBlock>
-
-            <TextBlock title="4/ Secrétariat">
-                <p className="font-bold">Courriers reçus</p>
-                <BulletList value={data.receivedMails} />
-                <p className="mt-4 font-bold">Courriers envoyés</p>
-                <BulletList value={data.sentMails} />
-            </TextBlock>
-
-            <TextBlock title="5/ Trésorerie">
-                <ul className="ml-10 list-disc space-y-2">
-                    {treasuryItems.map(([label, value]) => (
-                        <li key={label}>
-                            <span className="font-bold">{label} :</span> {valueOrDash(value)}
-                        </li>
-                    ))}
-                </ul>
-                <div className="mt-4">
-                    <BulletList value={data.treasuryOther} />
-                </div>
-            </TextBlock>
-
-        </article>
-    );
-}
-
-export function PreviewCRp2({ data }) {
-
-    return (
-        <article className={pageClassName}>
-            <HeaderCR />
-
-            <TextBlock title="6/ Commissions et actions">
-                <p className="font-bold">POINT EME (Effectif)</p>
-                <BulletList value={data.pointEME} />
-                <p className="mt-4 font-bold">POINT EML (Formation)</p>
-                <BulletList value={data.pointEML} />
-                <p className="mt-4 font-bold">POINT EMS (Service-Oeuvres)</p>
-                <BulletList value={data.pointEMS} />
-                <p className="mt-4 font-bold">Actions en cours</p>
-                <BulletList value={data.ongoingActions} />
-                <p className="mt-4 font-bold">Point LCIF</p>
-                <BulletList value={data.pointLCIF} />
-            </TextBlock>
-
-            <TextBlock title="7/ Divers et tour de table">
-                <p className="font-bold">Marketing et communication</p>
-                <BulletList value={data.marketing} />
-                <p className="mt-4 font-bold">Programme du mois</p>
-                <BulletList value={data.monthProgram} />
-                <p className="mt-4 font-bold">Divers</p>
-                <BulletList value={data.miscellaneous} />
-            </TextBlock>
-
-            <footer className="mt-16 text-[21px]">
-                <div className="mb-14 flex justify-between font-bold">
-                    <p>Fin de séance : {formatTime(data.endTime) || 'Non renseigné'}</p>
-                    <p>Saint Denis le {data.meetingDate ? new Date(data.meetingDate).toLocaleDateString('fr-FR') : 'Non renseigné'}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-28">
-                    <SignatureBlock title="Le Président" name="Nom à renseigner" />
-                    <SignatureBlock title="La secrétaire" name="Nom à renseigner" />
-                </div>
-            </footer>
-        </article>
-    );
-}
-
+/**
+ * Affichage du formulaire de saisie des informations de la réunion
+ * @param {data} data - Données de la réunion
+ * @returns {React.ReactNode} - Composant de prévisualisation du formulaire de saisie des informations de la réunion
+ *
 export function PreviewP1({ data }) {
 
     return (
@@ -413,7 +302,7 @@ export function PreviewP1({ data }) {
             </header>
 
             <div className="mx-auto grid gap-8">
-                <div className="grid gap-8 min-w-[990px] mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                <div className="grid gap-8 min-w-[990px] mx-auto "> 
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="📋 Informations de la réunion" />
                         <div className="grid gap-6 sm:grid-cols-1">
@@ -476,7 +365,7 @@ export function PreviewP1({ data }) {
                     </section>
                 </div>
 
-                <div className="grid gap-8 min-w-[990px] mx-auto"> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                <div className="grid gap-8 min-w-[990px] mx-auto"> 
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="👥 Participants" />
                         <div className="grid gap-6 sm:grid-cols-2">
@@ -506,7 +395,7 @@ export function PreviewP1({ data }) {
                     </section>
                 </div>
 
-                <div className="grid gap-8 min-w-[990px] mx-auto"> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                <div className="grid gap-8 min-w-[990px] mx-auto"> 
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="🎤 Interventions générales" />
                         <TextareaField label="Mot éventuel du président" placeholder="Entrez le mot du président..." htmlFor="presidentWord"
@@ -527,7 +416,7 @@ export function PreviewP2({ data }) {
     return (
         <div className="bg-body min-h-screen px-8 py-8 text-slate-900" style={{ width: '1240px' }}>
             <div className="mx-auto grid gap-8">
-                <div className="grid gap-8 min-w-[990px] mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                <div className="grid gap-8 min-w-[990px] mx-auto "> 
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="📬 Secrétariat" />
                         <TextareaField label="Courriers reçus" placeholder="Détail les courriers reçus..." htmlFor="receivedMails"
@@ -537,7 +426,7 @@ export function PreviewP2({ data }) {
                     </section>
                 </div>
 
-                <div className="grid gap-8 min-w-[990px] mx-auto"> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                <div className="grid gap-8 min-w-[990px] mx-auto"> 
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="💰 Trésorerie" />
                         <div className="grid gap-6 sm:grid-cols-2">
@@ -610,7 +499,7 @@ export function PreviewP3({ data }) {
             <div className="mx-auto grid gap-8">
 
 
-                <div className="grid gap-8 min-w-[990px] mx-auto"> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                <div className="grid gap-8 min-w-[990px] mx-auto"> 
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="📊 Commissions" />
                         <TextareaField label="POINT EME (Effectif)" placeholder="Points sur l'effectif..." htmlFor="pointEME"
@@ -626,7 +515,7 @@ export function PreviewP3({ data }) {
                     </section>
                 </div>
 
-                <div className="grid gap-8 min-w-[990px] mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                <div className="grid gap-8 min-w-[990px] mx-auto "> 
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="📢 Autres points" />
                         <TextareaField label="Point Marketing et Communication" placeholder="Informations marketing et communication..." htmlFor="marketing"
@@ -641,3 +530,4 @@ export function PreviewP3({ data }) {
         </div>
     );
 }
+*/
