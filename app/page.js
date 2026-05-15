@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { initialData } from './constantes/initialData';
 import Formulaire from './components/formulaire';
-import { PreviewP1, PreviewP2, PreviewP3 } from './components/preview';
+import { PreviewCRp1, PreviewCRp2 } from './components/preview';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ProcessingLoader } from './components/processingLoader';
 import { base64ToBlob } from './helpers/bas64ToBlob';
@@ -51,7 +51,7 @@ export default function Home() {
     };
 
     const apercuJpg = async () => {
-        const prevuePages = [<PreviewP1 data={formData} />, <PreviewP2 data={formData} />, <PreviewP3 data={formData} />];
+        const prevuePages = [<PreviewCRp1 data={formData} />, <PreviewCRp2 data={formData} />];
 
         const htmlStrings = prevuePages.map((Page) => renderToStaticMarkup(Page));
 
@@ -100,7 +100,7 @@ export default function Home() {
         await document.fonts.ready;
 
 
-        const prevuePages = [<PreviewP1 data={formData} />, <PreviewP2 data={formData} />, <PreviewP3 data={formData} />];
+        const prevuePages = [<PreviewCRp1 data={formData} />, <PreviewCRp2 data={formData} />];
 
         const htmlStrings = prevuePages.map((Page) => renderToStaticMarkup(Page));
 
@@ -176,7 +176,7 @@ export default function Home() {
 
             <div className="min-h-screen text-slate-900 pt-4 pb-8 bg-transparent">
                 <div className="mx-auto grid gap-8">
-                    <div className="grid gap-8 min-[990px]:min-w-[990px] min-[990px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                    <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto"> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
                         <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                             <div className="grid gap-4">
                                 <button type="button" onClick={apercuJpg} className="btn-primary">
@@ -194,7 +194,7 @@ export default function Home() {
                         </section>
                     </div>
 
-                    <div className="grid gap-8 min-[990px]:min-w-[990px] min-[990px]:mx-auto"> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
+                    <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto"> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
                         <section className="rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                             <div className="mb-6 text-center items-center px-4 py-3 text-primary text-[1.4em] text-semibold">
                                 <h1 className="text-2xl text-center font-bold text-primary">📄 Aperçu du Rapport</h1>

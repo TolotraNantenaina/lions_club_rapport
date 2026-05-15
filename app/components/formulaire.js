@@ -6,13 +6,25 @@ import { formatDate } from "../helpers/formatDate";
 
 export default function Formulaire({ data, onChange }) {
     const [formData, setFormData] = useState(data);
+    const memberFields = ['memberPresent', 'memberExcused', 'memberAbsent'];
 
     useEffect(() => {
         setFormData(data);
     }, [data]);
 
+    const calculateMemberTotal = (dataToCalculate) => {
+        return memberFields.reduce((total, field) => {
+            return total + (Number(dataToCalculate[field]) || 0);
+        }, 0).toString();
+    };
+
     const updateField = (key, value) => {
         const newData = { ...formData, [key]: value };
+
+        if (memberFields.includes(key)) {
+            newData.memberTotal = calculateMemberTotal(newData);
+        }
+
         setFormData(newData);
         onChange(newData);
     };
@@ -111,8 +123,8 @@ export default function Formulaire({ data, onChange }) {
                                     type="number"
                                     min="0"
                                     value={formData.memberTotal}
-                                    onChange={(e) => updateField('memberTotal', e.target.value)}
-                                    className="form-input pt-[12px]"
+                                    readOnly
+                                    className="form-input bg-slate-100 pt-[12px]"
                                 />
                             </FormField>
                         </div>
