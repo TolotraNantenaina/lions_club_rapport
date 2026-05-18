@@ -46,7 +46,7 @@ function splitLongLine(line, maxLength = 320) {
     return chunks;
 }
 
-function HeaderCR() {
+function HeaderCR({ clubName, clubLogoUrl, region, zone }) {
     return (
         <header className="mb-12 grid grid-cols-[120px_1fr_120px] items-start gap-6 text-center">
             <div className="mx-auto flex h-[155px] w-[155px] items-center justify-center">
@@ -54,14 +54,15 @@ function HeaderCR() {
             </div>
             <div>
                 <h1 className="text-[42px] font-black leading-tight tracking-wide text-[#173d68]">LIONS CLUB</h1>
-                <h2 className="text-[38px] font-black leading-tight tracking-wide text-[#173d68]">{'<--clubName non renseigné -->'}</h2>
-                <p className="mt-2 text-[22px] font-semibold text-[#173d68]">{'<--districtName non renseigné -->'}</p>
+                <h2 className="text-[38px] font-black leading-tight tracking-wide text-[#173d68]">{clubName || '<--clubName non renseigné -->'}</h2>
+                <p className="mt-2 text-[22px] font-semibold text-[#173d68]">DISTRICT 417 – {region || '<--region non renseigné -->'} - {zone || '<--zone non renseigné -->'}</p>
                 <p className="mt-3 text-[18px] text-slate-700">{'<--dateOfCharter non renseigné - clubNumber non renseigné -->'}</p>
             </div>
-            <div className="mx-auto flex h-[155px] w-[155px] items-center justify-center bg-gradient-to-b from-slate-100 to-sky-200 px-3 py-4 text-[18px] font-bold leading-tight text-[#173d68]">
+            <div className={`mx-auto flex h-[155px] w-[155px] items-center justify-center ${clubLogoUrl ? 'bg-transparent' : 'bg-gradient-to-b from-slate-100 to-sky-200 px-3 py-4 text-[18px] font-bold leading-tight text-[#173d68]'}`}>
+                {clubLogoUrl ? <img src={clubLogoUrl} alt="Logo Lions Club" className="h-[105px] w-[105px]" /> : 
                 <div className="flex h-[105px] w-[105px] items-center justify-center border-2 border-dashed border-primary">
                     {'logo non renseigné'}
-                </div>
+                </div>}
             </div>
         </header>
     );
@@ -190,7 +191,7 @@ export function getPreviewCRBlocks(data) {
     ];
 }
 
-function CRBlock({ block }) {
+function CRBlock({ block, president, vicePresident, secretary, location }) {
     if (block.type === 'intro') {
         return (
             <>
@@ -199,7 +200,7 @@ function CRBlock({ block }) {
                     <p className="text-[21px] font-bold uppercase">
                         {block.reunionType} du {block.titleDate}
                     </p>
-                    <p className="mt-2 text-[20px] font-semibold">Lieu : {block.location}</p>
+                    <p className="mt-2 text-[20px] font-semibold">Lieu : {location ? location.charAt(0).toUpperCase() + location.slice(1) : '<--Lieu non renseigné -->'}</p>
                 </div>
 
                 <p className="mb-8 text-[21px]">
@@ -256,12 +257,12 @@ function CRBlock({ block }) {
             <footer className="mt-16 text-[21px]">
                 <div className="mb-14 flex justify-between font-bold">
                     <p>Fin de séance : {block.endTime}</p>
-                    <p>{'<--Lieu non renseigné -->'} le {block.meetingDate}</p>
+                    <p>{location ? location.charAt(0).toUpperCase() + location.slice(1) : '<--Lieu non renseigné -->'} le {block.meetingDate}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-28">
-                    <SignatureBlock title="Le Président" name="Nom à renseigner" />
-                    <SignatureBlock title="La secrétaire" name="Nom à renseigner" />
+                    {president ? <SignatureBlock title="Le Président" name={president} /> : (vicePresident ? <SignatureBlock title="Le Vice-Président" name={vicePresident} /> : <SignatureBlock title="Le Président" name="Nom à renseigner" />)}
+                    {secretary ? <SignatureBlock title="La secrétaire" name={secretary} /> : <SignatureBlock title="La secrétaire" name="Nom à renseigner" />}
                 </div>
             </footer>
         );
@@ -270,14 +271,15 @@ function CRBlock({ block }) {
     return null;
 }
 
-export function PreviewCRPage({ blocks, pageNumber }) {
+export function PreviewCRPage({ blocks, pageNumber, headerData = {} }) {
+    console.log(headerData);
     return (
         <article className={pageClassName}>
             <div data-preview-flow="true">
-                <HeaderCR />
+                <HeaderCR clubName={headerData.clubName} clubLogoUrl={headerData.clubLogoUrl} region={headerData.region} zone={headerData.zone} />
                 <div className="space-y-1">
                     {blocks.map((block, index) => (
-                        <CRBlock key={`${block.type}-${block.title || block.label || block.text || index}`} block={block} />
+                        <CRBlock key={`${block.type}-${block.title || block.label || block.text || index}`} block={block} president={headerData.president} vicePresident={headerData.vicePresident} secretary={headerData.secretary} location={headerData.location} />
                     ))}
                 </div>
                 {/*<p className="mt-6 text-right text-[16px] text-slate-500">Page {pageNumber}</p>*/}

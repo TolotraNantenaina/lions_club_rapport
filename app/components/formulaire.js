@@ -1,16 +1,38 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { SectionHeading } from "./sectionHeading";
 import { FormField } from "./formField";
 import { TextareaField } from "./textareaField";
 import { formatDate } from "../helpers/formatDate";
+import { clubsData } from "../constantes/clubsData";
 
 export default function Formulaire({ data, onChange }) {
     const [formData, setFormData] = useState(data);
+    const [clubSearch, setClubSearch] = useState(data.clubName || '');
+    const [isClubDropdownOpen, setIsClubDropdownOpen] = useState(false);
+    const [isReunionDropdownOpen, setIsReunionDropdownOpen] = useState(false);
     const memberFields = ['memberPresent', 'memberExcused', 'memberAbsent'];
+    const reunionOptions = ['', 'AG', 'AG EXTRA', 'CA', 'CA EXTRA', 'AGM', 'AUTRE'];
+    const clubOptions = useMemo(() => (
+        clubsData
+            .map((club) => club.nomClub.trim())
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }))
+    ), []);
 
     useEffect(() => {
         setFormData(data);
+        setClubSearch(data.clubName || '');
     }, [data]);
+
+    const filteredClubOptions = useMemo(() => {
+        const query = clubSearch.trim().toLowerCase();
+
+        if (!query) {
+            return clubOptions;
+        }
+
+        return clubOptions.filter((clubName) => clubName.toLowerCase().includes(query));
+    }, [clubOptions, clubSearch]);
 
     const calculateMemberTotal = (dataToCalculate) => {
         return memberFields.reduce((total, field) => {
@@ -25,38 +47,142 @@ export default function Formulaire({ data, onChange }) {
             newData.memberTotal = calculateMemberTotal(newData);
         }
 
+        if (key === 'clubName') {
+            newData.president = clubsData.find((club) => club.nomClub === value)?.President || '';
+            newData.vicePresident = clubsData.find((club) => club.nomClub === value)?.vicePresident || '';
+            newData.secretary = clubsData.find((club) => club.nomClub === value)?.Secretaire || '';
+            newData.region = clubsData.find((club) => club.nomClub === value)?.Region || '';
+            newData.zone = clubsData.find((club) => club.nomClub === value)?.Zone || '';
+            newData.clubLogoUrl = clubsData.find((club) => club.nomClub === value)?.clubLogoUrl || '';
+        }
+
         setFormData(newData);
         onChange(newData);
     };
 
-    return (
-        <div className="min-h-screen text-slate-900 pt-8 pb-4 bg-transparent">
+    const selectClub = (clubName) => {
+        setClubSearch(clubName);
+        setIsClubDropdownOpen(false);
+        updateField('clubName', clubName);
+    };
 
-            <header className="text-center text-white mb-7">
-                <h1 className='text-[1.8rem] mb-2 font-bold tracking-tight sm:text-[2.5rem]'>🦁 Lions Club</h1>
-                <p className='text-[1.1em]'>Compte-Rendu de Réunion Statutaire</p>
-            </header>
+    const selectReunionType = (reunionType) => {
+        setIsReunionDropdownOpen(false);
+        updateField('reunionType', reunionType);
+    };
+
+    return (
+        <div className="min-h-screen text-slate-900 pb-4 bg-transparent">
 
             <div className="mx-auto grid gap-8">
                 <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto "> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="📋 Informations de la réunion" />
                         <div className="grid gap-6 sm:grid-cols-1">
+                            <FormField label="Club" htmlFor="clubName">
+                                <div className="relative">
+                                    <input
+                                        id="clubName"
+                                        type="text"
+                                        placeholder="Rechercher un club..."
+                                        value={clubSearch}
+                                        autoComplete="off"
+                                        onChange={(e) => {
+                                            setClubSearch(e.target.value);
+                                            setIsClubDropdownOpen(true);
+                                        }}
+                                        onFocus={() => setIsClubDropdownOpen(true)}
+                                        onBlur={() => window.setTimeout(() => setIsClubDropdownOpen(false), 120)}
+                                        className="form-input bg-light-grey pt-[12px] pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        aria-label="Afficher la liste des clubs"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => setIsClubDropdownOpen((isOpen) => !isOpen)}
+                                        className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center text-slate-500 transition hover:text-primary"
+                                    >
+                                        <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4">
+                                            <path
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth="1.5"
+                                                d="m6 8 4 4 4-4"
+                                            />
+                                        </svg>
+                                    </button>
+
+                                    {isClubDropdownOpen && (
+                                        <div className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-lg border-2 border-[var(--border)] bg-white shadow-[0_16px_35px_rgba(0,0,0,0.14)]">
+                                            {filteredClubOptions.length > 0 ? (
+                                                filteredClubOptions.map((clubName) => (
+                                                    <button
+                                                        key={clubName}
+                                                        type="button"
+                                                        onMouseDown={(e) => e.preventDefault()}
+                                                        onClick={() => selectClub(clubName)}
+                                                        className="block w-full px-4 py-3 text-left text-[0.95em] text-slate-800 transition hover:bg-[rgba(44,90,160,0.08)] hover:text-primary"
+                                                    >
+                                                        {clubName}
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <p className="px-4 py-3 text-[0.95em] text-dark-grey">Aucun club trouvé</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </FormField>
                             <FormField label="Réunion" htmlFor="reunionType">
-                                <select
-                                    id="reunionType"
-                                    value={formData.reunionType}
-                                    onChange={(e) => updateField('reunionType', e.target.value)}
-                                    className="form-input pt-[12px]"
-                                >
-                                    <option value="">-- Sélectionner --</option>
-                                    <option value="AG">AG</option>
-                                    <option value="AG EXTRA">AG EXTRA</option>
-                                    <option value="CA">CA</option>
-                                    <option value="CA EXTRA">CA EXTRA</option>
-                                    <option value="AGM">AGM</option>
-                                    <option value="AUTRE">AUTRE</option>
-                                </select>
+                                <div className="relative">
+                                    <input
+                                        id="reunionType"
+                                        type="text"
+                                        value={formData.reunionType}
+                                        placeholder="Sélectionner..."
+                                        readOnly
+                                        onFocus={() => setIsReunionDropdownOpen(true)}
+                                        onClick={() => setIsReunionDropdownOpen(true)}
+                                        onBlur={() => window.setTimeout(() => setIsReunionDropdownOpen(false), 120)}
+                                        className="form-input cursor-pointer bg-light-grey pt-[12px] pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        aria-label="Afficher la liste des types de réunion"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => setIsReunionDropdownOpen((isOpen) => !isOpen)}
+                                        className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center text-slate-500 transition hover:text-primary"
+                                    >
+                                        <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4">
+                                            <path
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth="1.5"
+                                                d="m6 8 4 4 4-4"
+                                            />
+                                        </svg>
+                                    </button>
+
+                                    {isReunionDropdownOpen && (
+                                        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-lg border-2 border-[var(--border)] bg-white shadow-[0_16px_35px_rgba(0,0,0,0.14)]">
+                                            {reunionOptions.map((reunionType) => (
+                                                <button
+                                                    key={reunionType || 'empty-reunion-type'}
+                                                    type="button"
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    onClick={() => selectReunionType(reunionType)}
+                                                    className="block w-full h-[40px] px-4 py-3 text-left text-[0.95em] text-slate-800 transition hover:bg-[rgba(44,90,160,0.08)] hover:text-primary"
+                                                >
+                                                    {reunionType || 'Sélectionner...'}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </FormField>
                         </div>
                         <div className="grid gap-6 sm:grid-cols-2">

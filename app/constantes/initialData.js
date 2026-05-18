@@ -1,6 +1,13 @@
 const today = new Date().toISOString().split('T')[0];
 
 export const initialData = {
+    clubName: '',
+    clubLogoUrl: '',
+    president: '',
+    vicePresident: '',
+    secretary: '',
+    region: '',
+    zone: '',
     reunionType: '',
     meetingDate: today,
     location: '',

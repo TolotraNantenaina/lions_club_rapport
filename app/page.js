@@ -66,7 +66,7 @@ export default function Home() {
     };
 
     const isPreviewPageOverflowing = (blocks, pageNumber) => {
-        const htmlString = renderToStaticMarkup(<PreviewCRPage blocks={blocks} pageNumber={pageNumber} />);
+        const htmlString = renderToStaticMarkup(<PreviewCRPage blocks={blocks} pageNumber={pageNumber} headerData={formData} />);
         const tempDiv = createPreviewContainer(htmlString);
         const pageElement = tempDiv.querySelector('article') || tempDiv.firstElementChild;
         const contentElement = tempDiv.querySelector('[data-preview-flow="true"]');
@@ -107,7 +107,7 @@ export default function Home() {
         }
 
         return pages.map((blocks, index) => (
-            <PreviewCRPage key={`preview-cr-${index}`} blocks={blocks} pageNumber={index + 1} />
+            <PreviewCRPage key={`preview-cr-${index}`} blocks={blocks} pageNumber={index + 1} headerData={formData} />
         ));
     };
 
@@ -194,9 +194,22 @@ export default function Home() {
 
     return (
         <main className="min-h-screen mx-8">
+
+            <div className="text-slate-900 pt-8 bg-transparent">
+
+                <header className="text-center text-white mb-7">
+                    <div className="mx-auto py-3 flex h-[60px] items-center justify-center gap-2">
+                        <img src="/ico_lions_club_transparent.png" alt="Logo Lions Club" className="h-[55px] w-[55px] mb-2" />
+                        <h1 className='text-[1.8rem] mb-2 font-bold tracking-tight sm:text-[2.5rem]'> Lions Club</h1>
+                    </div>
+                    <p className='text-[1.1em]'>Compte-Rendu de Réunion Statutaire</p>
+                </header>
+
+            </div>
+
             <Formulaire data={formData} onChange={setFormData} />
 
-            <div className="min-h-screen text-slate-900 pt-4 pb-8 bg-transparent">
+            <div className="text-slate-900 pt-4 pb-8 bg-transparent">
                 <div className="mx-auto grid gap-8">
                     <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto"> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
                         <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
