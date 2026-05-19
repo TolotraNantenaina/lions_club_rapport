@@ -164,6 +164,7 @@ export default function Home() {
         const validImages = await generatePreviewImages('❌ Erreur lors de la génération de l’aperçu');
         setApercuUrls(validImages);
         setApercuValide(true);
+        setCurrentPage(0);
         setApercuLoading(false);
     };
 

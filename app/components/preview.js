@@ -46,7 +46,7 @@ function splitLongLine(line, maxLength = 320) {
     return chunks;
 }
 
-function HeaderCR({ clubName, clubLogoUrl, region, zone }) {
+function HeaderCR({ clubName, numeroAffiliation, clubLogoUrl, region, zone }) {
     return (
         <header className="mb-12 grid grid-cols-[120px_1fr_120px] items-start gap-6 text-center">
             <div className="mx-auto flex h-[155px] w-[155px] items-center justify-center">
@@ -56,10 +56,10 @@ function HeaderCR({ clubName, clubLogoUrl, region, zone }) {
                 <h1 className="text-[42px] font-black leading-tight tracking-wide text-[#173d68]">LIONS CLUB</h1>
                 <h2 className="text-[38px] font-black leading-tight tracking-wide text-[#173d68]">{clubName || '<--clubName non renseigné -->'}</h2>
                 <p className="mt-2 text-[22px] font-semibold text-[#173d68]">DISTRICT 417 – {region || '<--region non renseigné -->'} - {zone || '<--zone non renseigné -->'}</p>
-                <p className="mt-3 text-[18px] text-slate-700">{'<--dateOfCharter non renseigné - clubNumber non renseigné -->'}</p>
+                <p className="mt-3 text-[18px] text-slate-700">Date de remise de la charte : {'<--dateOfCharter non renseigné-->'} - N° Club : { numeroAffiliation || '<--numeroAffiliation non renseigné-->'}</p>
             </div>
             <div className={`mx-auto flex h-[155px] w-[155px] items-center justify-center ${clubLogoUrl ? 'bg-transparent' : 'bg-gradient-to-b from-slate-100 to-sky-200 px-3 py-4 text-[18px] font-bold leading-tight text-[#173d68]'}`}>
-                {clubLogoUrl ? <img src={clubLogoUrl} alt="Logo Lions Club" className="h-[105px] w-[105px]" /> : 
+                {clubLogoUrl ? <img src={clubLogoUrl} alt="Logo Lions Club" className="h-[155px] w-auto mr-8" /> : 
                 <div className="flex h-[105px] w-[105px] items-center justify-center border-2 border-dashed border-primary">
                     {'logo non renseigné'}
                 </div>}
@@ -276,7 +276,7 @@ export function PreviewCRPage({ blocks, pageNumber, headerData = {} }) {
     return (
         <article className={pageClassName}>
             <div data-preview-flow="true">
-                <HeaderCR clubName={headerData.clubName} clubLogoUrl={headerData.clubLogoUrl} region={headerData.region} zone={headerData.zone} />
+                <HeaderCR clubName={headerData.clubName} numeroAffiliation={headerData.numeroAffiliation} clubLogoUrl={headerData.clubLogoUrl} region={headerData.region} zone={headerData.zone} />
                 <div className="space-y-1">
                     {blocks.map((block, index) => (
                         <CRBlock key={`${block.type}-${block.title || block.label || block.text || index}`} block={block} president={headerData.president} vicePresident={headerData.vicePresident} secretary={headerData.secretary} location={headerData.location} />

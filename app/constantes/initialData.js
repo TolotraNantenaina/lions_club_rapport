@@ -6,6 +6,7 @@ export const initialData = {
     president: '',
     vicePresident: '',
     secretary: '',
+    numeroAffiliation: '',
     region: '',
     zone: '',
     reunionType: '',

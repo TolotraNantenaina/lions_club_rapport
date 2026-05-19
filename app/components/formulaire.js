@@ -54,6 +54,7 @@ export default function Formulaire({ data, onChange }) {
             newData.region = clubsData.find((club) => club.nomClub === value)?.Region || '';
             newData.zone = clubsData.find((club) => club.nomClub === value)?.Zone || '';
             newData.clubLogoUrl = clubsData.find((club) => club.nomClub === value)?.clubLogoUrl || '';
+            newData.numeroAffiliation = clubsData.find((club) => club.nomClub === value)?.numeroAffiliation || '';
         }
 
         setFormData(newData);

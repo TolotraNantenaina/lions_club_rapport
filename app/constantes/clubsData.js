@@ -1,6 +1,7 @@
 export const clubsData = [
     {
         "nomClub": "AMBOVOMBE ANDROY",
+        "numeroAffiliation": "130750",
         "President": "Sahobiharinjaka Fidy",
         "vicePresident": "Hobiniaina Ambroise Rasolonjatovo",
         "Secretaire": "Barison Rija Rakotondravelo",
@@ -17,6 +18,7 @@ export const clubsData = [
     },
     {
         "nomClub": "TOLAGNARO FORT DAUPHIN",
+        "numeroAffiliation": "27007",
         "President": "Toussaint Rakotomavoarisona",
         "vicePresident": "Delphin Andreas",
         "Secretaire": "Lalaoarijaona Rasolonandrasana",
@@ -25,6 +27,7 @@ export const clubsData = [
     },
     {
         "nomClub": "TULEAR DOYEN",
+        "numeroAffiliation": "27014",
         "President": "Makaty Moustafa",
         "vicePresident": "Rendela Rosalio",
         "Secretaire": "Herinirina Patricia Andrée",
@@ -33,6 +36,7 @@ export const clubsData = [
     },
     {
         "nomClub": "FARAFANGANA",
+        "numeroAffiliation": "107646",
         "President": "Caleb Landry  RAZAFINDRATOVO",
         "vicePresident": "Venance Judicael  MAMITIANA ",
         "Secretaire": "Krishna Etranga ALKELOON",
@@ -41,6 +45,7 @@ export const clubsData = [
     },
     {
         "nomClub": "FIANARANTSOA",
+        "numeroAffiliation": "27009",
         "President": "Dominique Leung Way Fon",
         "vicePresident": "   ",
         "Secretaire": "Eva Randriatsotsy",
@@ -49,6 +54,7 @@ export const clubsData = [
     },
     {
         "nomClub": "IHOSY VASIA",
+        "numeroAffiliation": "102159",
         "President": "Norovelo Randriamanandaza",
         "vicePresident": "CLAIRE AURELIE NOARIJAONA",
         "Secretaire": "MAROVAVY THERESE NOARIJAONA",
@@ -57,6 +63,7 @@ export const clubsData = [
     },
     {
         "nomClub": "MORONDAVA",
+        "numeroAffiliation": "107711",
         "President": "Mialy Harimino Rakotoary",
         "vicePresident": "Hugues Razafindramosa",
         "Secretaire": "Andrin'Irina Rafaralahisoa",
@@ -65,6 +72,7 @@ export const clubsData = [
     },
     {
         "nomClub": "ANTSIRABE RANOVISY ANTANANARIV",
+        "numeroAffiliation": "45759",
         "President": "Kevin Yuen  Rabemananjara ",
         "vicePresident": "Marie Arlene SAFY",
         "Secretaire": "Marie Arlene SAFY",
@@ -81,6 +89,7 @@ export const clubsData = [
     },
     {
         "nomClub": "ANTANANARIVO AVOTIA",
+        "numeroAffiliation": "101670",
         "President": "Dimby Ralambomanana",
         "vicePresident": "Laurent Mandridake",
         "Secretaire": "Malanto Andrianandraina",
@@ -89,6 +98,7 @@ export const clubsData = [
     },
     {
         "nomClub": "ANTANANARIVO MANJAKAMIADANA",
+        "numeroAffiliation": "59736",
         "President": "Noroanjasoa Razakandrema",
         "vicePresident": "Ollyna Raholisoa",
         "Secretaire": "Miarana Razakatiana",
@@ -97,6 +107,7 @@ export const clubsData = [
     },
     {
         "nomClub": "ANTANANARIVO SALANITRA",
+        "numeroAffiliation": "89236",
         "President": "Rico Razafintsolany",
         "vicePresident": "Mamy Hajason Randrianasolo",
         "Secretaire": "Fenosoa Rakotosolo",
@@ -105,6 +116,7 @@ export const clubsData = [
     },
     {
         "nomClub": "TSIROANOMANDIDY",
+        "numeroAffiliation": "109717",
         "President": "Harinirina Hanitra RAZAFY",
         "vicePresident": "Solofo Andrianiaina",
         "Secretaire": "Tovohery Andrianavalitiana",
@@ -113,46 +125,57 @@ export const clubsData = [
     },
     {
         "nomClub": "SAINT-DENIS CŒUR MÉTISSE",
+        "numeroAffiliation": "154367",
         "President": "Raphaël Hoareau",
         "vicePresident": "Jean-Alex Vimbouly",
         "Secretaire": "Marie Josée Vergoz",
+        "clubLogoUrl": "/clubsIcons/R2 Z21 Coeur Métisse.png",
         "Region": "Région 2",
         "Zone": "Zone 21"
     },
     {
         "nomClub": "SAINT DENIS FRANCE AUSTRALE DO",
+        "numeroAffiliation": "27016",
         "President": "Patrick Gros",
         "vicePresident": "   ",
         "Secretaire": "Denise NARASSIGUIN",
+        "clubLogoUrl": "/clubsIcons/R2 Z21 FRANCE AUSTRALE DOYEN.jpg",
         "Region": "Région 2",
         "Zone": "Zone 21"
     },
     {
         "nomClub": "SAINT-DENIS SAVANAH-ALAMANDA",
+        "numeroAffiliation": "54834",
         "President": "Irene Ah Sing",
         "vicePresident": "Dominique Lionnet",
         "Secretaire": "Huguette Dorseuil",
+        "clubLogoUrl": "/clubsIcons/R2 Z21 Savanah Alamanda.png",
         "Region": "Région 2",
         "Zone": "Zone 21"
     },
     {
         "nomClub": "RÉUNION RENAISSANCE",
+        "numeroAffiliation": "137460",
         "President": "Philippe MONDON ",
         "vicePresident": "Laurent   VIREMOUNEIX",
         "Secretaire": "Geneviève  MAURY",
+        "clubLogoUrl": "/clubsIcons/R2 Z21 Réunion Renaissance.jpg",
         "Region": "Région 2",
         "Zone": "Zone 21"
     },
     {
         "nomClub": "ST DENIS REUN PERLE AUSTRALE",
+        "numeroAffiliation": "35129",
         "President": "Matthias Ramsamy",
         "vicePresident": "Georges Chane-Tune",
         "Secretaire": "Philippe Odonnat",
+        "clubLogoUrl": "/clubsIcons/R2 Z21 Perle Australe.jpg",
         "Region": "Région 2",
         "Zone": "Zone 21"
     },
     {
         "nomClub": "LE TAMPON CONCESSION",
+        "numeroAffiliation": "122682",
         "President": "Jean-René Badre",
         "vicePresident": "Fernand Alvarez",
         "Secretaire": "Lionnel Garnier",
@@ -161,14 +184,17 @@ export const clubsData = [
     },
     {
         "nomClub": "LE TAMPON JACARANDAS",
+        "numeroAffiliation": "115950",
         "President": "Henri FONTAINE",
         "vicePresident": "Georges THEREZO",
         "Secretaire": "Vanessa BONIN",
+        "clubLogoUrl": "/clubsIcons/R2 Z22 Jacarandas .jpg",
         "Region": "Région 2",
         "Zone": "Zone 22"
     },
     {
         "nomClub": "MAYOTTE LAGON",
+        "numeroAffiliation": "124004",
         "President": "Louis Daniel Jaozara",
         "vicePresident": "Moli Sharja TOMBOANJARA",
         "Secretaire": "Eva KERHARO",
@@ -177,6 +203,7 @@ export const clubsData = [
     },
     {
         "nomClub": "MAYOTTE YLANG",
+        "numeroAffiliation": "54789",
         "President": "Chouhoura Minas Abdallah",
         "vicePresident": "   ",
         "Secretaire": "Asdjathy SAID ALI",
@@ -185,14 +212,17 @@ export const clubsData = [
     },
     {
         "nomClub": "REUNION SUD",
+        "numeroAffiliation": "27015",
         "President": "Brigitte Etienne",
         "vicePresident": "Floris Payet",
         "Secretaire": "Dolène Benaiche",
+        "clubLogoUrl": "/clubsIcons/R2 Z22 REUNION SUD.png",
         "Region": "Région 2",
         "Zone": "Zone 22"
     },
     {
         "nomClub": "SAINT LOUIS FLEUR DE CANNE",
+        "numeroAffiliation": "185883",
         "President": "Louis Alfred SINAMAN ",
         "vicePresident": "Valérie HOARAU ",
         "Secretaire": "Valérie HOARAU ",
@@ -201,6 +231,7 @@ export const clubsData = [
     },
     {
         "nomClub": "ÉTANG SALÉ LES SABLES",
+        "numeroAffiliation": "151440",
         "President": "Mathieu Vélia",
         "vicePresident": "Agnès Vélia",
         "Secretaire": "Armand Vélia",
@@ -209,14 +240,17 @@ export const clubsData = [
     },
     {
         "nomClub": "LA POSSESSION",
+        "numeroAffiliation": "172056",
         "President": "Pascale Savoye",
         "vicePresident": "   ",
         "Secretaire": "Marie Helene Mondon",
+        "clubLogoUrl": "/clubsIcons/R2 Z23 La Possession.png",
         "Region": "Région 2",
         "Zone": "Zone 23"
     },
     {
         "nomClub": "PORT RÉUNION",
+        "numeroAffiliation": "156956",
         "President": "Laurencia HILARIC",
         "vicePresident": "Georges-Marie  VINGADASSALOM ",
         "Secretaire": "Laurencia HILARIC",
@@ -225,14 +259,17 @@ export const clubsData = [
     },
     {
         "nomClub": "REUNION SAINT-GILLES",
+        "numeroAffiliation": "38773",
         "President": "Pierrick ALLOMBERT",
         "vicePresident": "Morgane KERBIDI-ALLOMBERT",
         "Secretaire": "Morgane KERBIDI-ALLOMBERT",
+        "clubLogoUrl": "/clubsIcons/R2 Z23 Réunion st-gilles.jpg",
         "Region": "Région 2",
         "Zone": "Zone 23"
     },
     {
         "nomClub": "SAINT LEU",
+        "numeroAffiliation": "151014",
         "President": "Laetitia Guillevin",
         "vicePresident": "Caroline Mercadal",
         "Secretaire": "Julie MARSAC",
@@ -241,6 +278,7 @@ export const clubsData = [
     },
     {
         "nomClub": "SAINT PAUL TOUR DES ROCHES",
+        "numeroAffiliation": "139699",
         "President": "Olivier Mattmann",
         "vicePresident": "Fabrice Vidal",
         "Secretaire": "Wilson Clain",
@@ -249,6 +287,7 @@ export const clubsData = [
     },
     {
         "nomClub": "DJIBOUTI",
+        "numeroAffiliation": "27020",
         "President": "Darar Djama Ibrahim",
         "vicePresident": "Bander Mahamoud Abdoulkader",
         "Secretaire": "Jean Meunier",
@@ -257,22 +296,27 @@ export const clubsData = [
     },
     {
         "nomClub": "PLAINE DES PALMISTES LE PALMIER",
+        "numeroAffiliation": "127862",
         "President": "Wilfried Fontaine",
         "vicePresident": "Edith Hoair",
         "Secretaire": "Emilie CANDASSAMY",
+        "clubLogoUrl": "/clubsIcons/R2 Z24 Pl des Palmistes Le Palmier.jpg",
         "Region": "Région 2",
         "Zone": "Zone 24"
     },
     {
         "nomClub": "SAINT BENOIT LES EAUX VIVES",
+        "numeroAffiliation": "152570",
         "President": "Daniel Lapierre",
         "vicePresident": "   ",
         "Secretaire": "Samuel Félicité",
+        "clubLogoUrl": "/clubsIcons/R2 Z24 Saint-Benoît les Eaux Vives.png",
         "Region": "Région 2",
         "Zone": "Zone 24"
     },
     {
         "nomClub": "SAINT-ANDRE LES VACOAS",
+        "numeroAffiliation": "116410",
         "President": "Gilbert ROBERT",
         "vicePresident": "Betty Heekeng",
         "Secretaire": "Betty Heekeng",
@@ -281,22 +325,27 @@ export const clubsData = [
     },
     {
         "nomClub": "SAINTE-SUZANNE NIAGARA",
+        "numeroAffiliation": "119175",
         "President": "Dominique Lamoly",
         "vicePresident": "Erick Desmarais",
         "Secretaire": "Josie Hoarau",
+        "clubLogoUrl": "/clubsIcons/R2 Z24 STE SUZANNE NIAGARA.PNG",
         "Region": "Région 2",
         "Zone": "Zone 24"
     },
     {
         "nomClub": "SAINTE MARIE EST EDMOND ALBIUS",
+        "numeroAffiliation": "100096",
         "President": "Emmanuelle CLAIN-DOLPHIN",
         "vicePresident": "Jacques  VÉLOUPOULÉ",
         "Secretaire": "Serge  LALLEMAND",
+        "clubLogoUrl": "/clubsIcons/R2 Z24 STE MARIE EDMOND ALBIUS.jpg",
         "Region": "Région 2",
         "Zone": "Zone 24"
     },
     {
         "nomClub": "AMBOHIDRATRIMO",
+        "numeroAffiliation": "101454",
         "President": "Nirina José Elie",
         "vicePresident": "Ranto Randriamifidy",
         "Secretaire": "Andry RANAIVOSON",
@@ -305,22 +354,27 @@ export const clubsData = [
     },
     {
         "nomClub": "ANTANANARIVO IARIVO",
+        "numeroAffiliation": "56408",
         "President": "Sarah Razafintsalama",
         "vicePresident": "Ando Razanantoanina",
         "Secretaire": "Andonantenaina Rafanjarison",
+        "clubLogoUrl": "/clubsIcons/R3 Z31 Iarivo.png",
         "Region": "Région 3",
         "Zone": "Zone 31"
     },
     {
         "nomClub": "ANTANANARIVO SANTATRA NC",
+        "numeroAffiliation": "67190",
         "President": "Henri Joel Zakatina",
         "vicePresident": "Heritiana Jerry Ramalanjaona",
         "Secretaire": "Hoby Ramaharoson",
+        "clubLogoUrl": "/clubsIcons/R3 Z31 SANTATRA. N.C.jpeg",
         "Region": "Région 3",
         "Zone": "Zone 31"
     },
     {
         "nomClub": "ANTANANARIVO TSARA TANANA",
+        "numeroAffiliation": "104812",
         "President": "Michael Dominique Ratovoson",
         "vicePresident": "   ",
         "Secretaire": "Yves RAKOTOARISON",
@@ -329,6 +383,7 @@ export const clubsData = [
     },
     {
         "nomClub": "MAJUNGA",
+        "numeroAffiliation": "27010",
         "President": "Eric Petitjean",
         "vicePresident": "Prosper Ralaiavy",
         "Secretaire": "GOULAMALY Shayan",
@@ -337,14 +392,17 @@ export const clubsData = [
     },
     {
         "nomClub": "AMBOHIBAO-LAKA",
+        "numeroAffiliation": "119127",
         "President": "Rija Rakotomanga",
         "vicePresident": "Mohamed Habib BEN ROMDHANE",
         "Secretaire": "Francia MARTINEZ",
+        "clubLogoUrl": "/clubsIcons/R3 Z32 Ambohibao Laka.png",
         "Region": "Région 3",
         "Zone": "Zone 32"
     },
     {
         "nomClub": " ANTANANARIVO AMITIÉ",
+        "numeroAffiliation": "179225",
         "President": "LOVASOA HANITRINIAINA",
         "vicePresident": "Gislaine Fréderika Laitrefina",
         "Secretaire": "Florent Arthur",
@@ -353,6 +411,7 @@ export const clubsData = [
     },
     {
         "nomClub": "ANTANANARIVO VOHITSARA",
+        "numeroAffiliation": "43582",
         "President": "Michelle Angela RAKOTONAIVO",
         "vicePresident": "Sandifera Andriampenosoa MANASSE-RATSIMANDRESY",
         "Secretaire": "Sandifera Andriampenosoa MANASSE-RATSIMANDRESY",
@@ -361,6 +420,7 @@ export const clubsData = [
     },
     {
         "nomClub": " MORAMANGA MANGORO",
+        "numeroAffiliation": "124179",
         "President": "Sylvio Razafison",
         "vicePresident": "Sylvain Rodolphe Ralaiarimalala",
         "Secretaire": "Aicha Andrianarison",
@@ -369,6 +429,7 @@ export const clubsData = [
     },
     {
         "nomClub": "AMBATONDRAZAKA LAC ALAOTRA",
+        "numeroAffiliation": "47393",
         "President": "faby Fabien  RAZAFINDRAMBOA",
         "vicePresident": " Jean Yves René  RANDRIAMIARANA ",
         "Secretaire": " Jean Yves René  RANDRIAMIARANA ",
@@ -377,6 +438,7 @@ export const clubsData = [
     },
     {
         "nomClub": " AMBODIFOTATRA SAINTE MARIE",
+        "numeroAffiliation": "124200",
         "President": "Clo Clotilde  VELONTRASINA ",
         "vicePresident": "   ",
         "Secretaire": "Riandrotsy RAKOTOZAFY",
@@ -385,6 +447,7 @@ export const clubsData = [
     },
     {
         "nomClub": " ANTANANARIVO FARIMBONA",
+        "numeroAffiliation": "124452",
         "President": "Tolotra Raharijaona",
         "vicePresident": "Melam Goulamhoussen",
         "Secretaire": "Dinaniaina Raveloharimalala",
@@ -393,22 +456,27 @@ export const clubsData = [
     },
     {
         "nomClub": "ANTANANARIVO ILOHASINA",
+        "numeroAffiliation": "100586",
         "President": "Rina Robson Andriantsarafara",
         "vicePresident": "Michaela Rakotoarivelo",
         "Secretaire": "Mialihenintsoa Ravelojaona",
+        "clubLogoUrl": "/clubsIcons/R3 Z33 Ilohasina.png",
         "Region": "Région 3",
         "Zone": "Zone 33"
     },
     {
         "nomClub": "TAMATAVE",
+        "numeroAffiliation": "27011",
         "President": "Armand Mbola Mitahasoa",
         "vicePresident": "Ilo Harinavalona Ramanantoanina",
         "Secretaire": "Ilo Harinavalona Ramanantoanina",
+        "clubLogoUrl": "/clubsIcons/R3 Z33 Tamatave.png",
         "Region": "Région 3",
         "Zone": "Zone 33"
     },
     {
         "nomClub": "TOAMASINA DES PANGALANES",
+        "numeroAffiliation": "154368",
         "President": "Razafindrambinina Mihary",
         "vicePresident": "Botou Estelin",
         "Secretaire": "Jenny Razafindramanana",
@@ -417,6 +485,7 @@ export const clubsData = [
     },
     {
         "nomClub": " FENERIVE EST",
+        "numeroAffiliation": "122405",
         "President": " Jean  Barson  ",
         "vicePresident": "   ",
         "Secretaire": "Nirina Elio MOSESY",
@@ -425,22 +494,27 @@ export const clubsData = [
     },
     {
         "nomClub": "AMBOHIMANGA",
+        "numeroAffiliation": "116807",
         "President": "Murielle Chen Chao",
         "vicePresident": "   ",
         "Secretaire": "Marie RAKOTOSOA",
+        "clubLogoUrl": "/clubsIcons/R3 Z34 Ambohimanga.jpeg",
         "Region": "Région 3",
         "Zone": "Zone 34"
     },
     {
         "nomClub": "ANTANANARIVO ANALAMANGA",
+        "numeroAffiliation": "27013",
         "President": "Olivianie Epala",
         "vicePresident": "Zo RANAIVOSON",
         "Secretaire": "Zo RANAIVOSON",
+        "clubLogoUrl": "/clubsIcons/R3 Z34 Analamanga.png",
         "Region": "Région 3",
         "Zone": "Zone 34"
     },
     {
         "nomClub": " ANTANANARIVO MIRANANDRO",
+        "numeroAffiliation": "136979",
         "President": "Hervé Rakotobe",
         "vicePresident": "Jean-Marc Razakarivony",
         "Secretaire": "Jean-Marc Razakarivony",
@@ -449,6 +523,7 @@ export const clubsData = [
     },
     {
         "nomClub": " ANTANANARIVO  VALIHA",
+        "numeroAffiliation": "180000",
         "President": "Tsantamalala Andrianomenjanahary",
         "vicePresident": "Manoa Andry Fiononana Harinivo",
         "Secretaire": "Lantonirina Raharisoa",
@@ -457,6 +532,7 @@ export const clubsData = [
     },
     {
         "nomClub": "TANANARIVE DOYEN",
+        "numeroAffiliation": "27012",
         "President": "Hoby Rakotonindrina",
         "vicePresident": "Noeline Spicq",
         "Secretaire": "Haja Randrianato",
@@ -465,14 +541,17 @@ export const clubsData = [
     },
     {
         "nomClub": "AMBANJA",
+        "numeroAffiliation": "99829",
         "President": "VANESSA Safina",
         "vicePresident": "Herbert D'Ambelle De Pindray",
         "Secretaire": "Miora Andrianomentsoa",
+        "clubLogoUrl": "/clubsIcons/R4 Z41 Ambanja.png",
         "Region": "Région 4",
         "Zone": "Zone 41"
     },
     {
         "nomClub": "DIEGO SUAREZ",
+        "numeroAffiliation": "27008",
         "President": "Vanja SOARIZIKY",
         "vicePresident": "Synthia Tombo",
         "Secretaire": "Joë Francklin Reydellet",
@@ -481,14 +560,17 @@ export const clubsData = [
     },
     {
         "nomClub": "NOSSI BE",
+        "numeroAffiliation": "41647",
         "President": "Arthur Besse",
         "vicePresident": "Jaotombo Adamaly",
         "Secretaire": "Gregory FUNG TSI HOOU",
+        "clubLogoUrl": "/clubsIcons/R4 Z41 Nossi Be.jpg",
         "Region": "Région 4",
         "Zone": "Zone 41"
     },
     {
         "nomClub": " ANTSOHIHY",
+        "numeroAffiliation": "120571",
         "President": "Jules Roche Mario Irisy ",
         "vicePresident": "AMIZAJHA AMIZAHA ",
         "Secretaire": "Jean  Rasolondraibe ",
@@ -497,14 +579,17 @@ export const clubsData = [
     },
     {
         "nomClub": "ANTALAHA",
+        "numeroAffiliation": "64950",
         "President": "Edwige Rafenoarisoa",
         "vicePresident": "Ardon Rabearivelo",
         "Secretaire": "Sam-Teddy BADADY",
+        "clubLogoUrl": "/clubsIcons/R4 Z42 Antalaha .jpg",
         "Region": "Région 4",
         "Zone": "Zone 42"
     },
     {
         "nomClub": "SAMBAVA",
+        "numeroAffiliation": "45640",
         "President": "Hervé Rafanomezantsoa",
         "vicePresident": "Robert Rakotoarivelo",
         "Secretaire": "Nadia Ingy",
@@ -513,6 +598,7 @@ export const clubsData = [
     },
     {
         "nomClub": "ANDAPA",
+        "numeroAffiliation": "138024",
         "President": "Pierette Chantal  Razafindrabary",
         "vicePresident": "   ",
         "Secretaire": "Michaël  Huang Chan",
@@ -521,6 +607,7 @@ export const clubsData = [
     },
     {
         "nomClub": "VOHEMAR",
+        "numeroAffiliation": "116076",
         "President": "Juliot FENOT",
         "vicePresident": "Jean Michel LAYRELOUP",
         "Secretaire": "Jean Michel LAYRELOUP",
@@ -529,6 +616,7 @@ export const clubsData = [
     },
     {
         "nomClub": "AMBILOBE",
+        "numeroAffiliation": "182295",
         "President": "Shoeb  HATIMALY",
         "vicePresident": "   ",
         "Secretaire": "Véronique René SOALAZA",
@@ -537,6 +625,7 @@ export const clubsData = [
     },
     {
         "nomClub": "ALBION LE PHARE",
+        "numeroAffiliation": "137910",
         "President": "Julien Jhuboo",
         "vicePresident": "Steve Batterie",
         "Secretaire": "Nagalingum Manikum",
@@ -545,6 +634,7 @@ export const clubsData = [
     },
     {
         "nomClub": "MOKA",
+        "numeroAffiliation": "78386",
         "President": "Hurynag Medha",
         "vicePresident": "Karoona Soobah",
         "Secretaire": "Nathalie Andre",
@@ -553,6 +643,7 @@ export const clubsData = [
     },
     {
         "nomClub": "PAMPLEMOUSSES",
+        "numeroAffiliation": "84756",
         "President": "Michèle Ithier",
         "vicePresident": "Marie Sweety Pursun",
         "Secretaire": "Marie Sweety Pursun",
@@ -561,6 +652,7 @@ export const clubsData = [
     },
     {
         "nomClub": "PORT LOUIS DOYEN",
+        "numeroAffiliation": "26984",
         "President": "Mahess Roopun",
         "vicePresident": "Kishan Ghoora",
         "Secretaire": "Amal Jawaheer",
@@ -569,14 +661,35 @@ export const clubsData = [
     },
     {
         "nomClub": "RODRIGUES",
+        "numeroAffiliation": "62658",
         "President": "Emilie Leveque",
         "vicePresident": "Jean Christophe Speville",
         "Secretaire": "Jouana Genave",
+        "clubLogoUrl": "/clubsIcons/R5 Z51 RODRIGUES.png",
+        "Region": "Région 5",
+        "Zone": "Zone 51"
+    },
+    {
+        "nomClub": "GRAND BAIE",
+        "numeroAffiliation": "192302",
+        "President": "Poly Leung",
+        "vicePresident": "   ",
+        "Secretaire": "Shirley Dawoo",
+        "Region": "Région 5",
+        "Zone": "Zone 51"
+    },
+    {
+        "nomClub": "POINTE AUX CANONNIERS",
+        "numeroAffiliation": "192290",
+        "President": "Marie-Catherine Tonta",
+        "vicePresident": "   ",
+        "Secretaire": "Floryse Wang Fong",
         "Region": "Région 5",
         "Zone": "Zone 51"
     },
     {
         "nomClub": "BON ACCUEIL LALLMATIE",
+        "numeroAffiliation": "154314",
         "President": "Seetohul Kavindranath",
         "vicePresident": "Yashmitra Lobin",
         "Secretaire": "Yashmitra Lobin",
@@ -585,22 +698,27 @@ export const clubsData = [
     },
     {
         "nomClub": "CUREPIPE",
+        "numeroAffiliation": "37503",
         "President": "Vimla Menon",
         "vicePresident": "Vinesh Seetohul",
         "Secretaire": "Marilyn Ernest",
+        "clubLogoUrl": "/clubsIcons/R5 Z52 Curepipe.png",
         "Region": "Région 5",
         "Zone": "Président de commission des œuvres sociales du club"
     },
     {
         "nomClub": "EBENE",
+        "numeroAffiliation": "117650",
         "President": "Fabrice Aza",
         "vicePresident": "Egyla Ellapen",
         "Secretaire": "Riana Rahamefy",
+        "clubLogoUrl": "/clubsIcons/R5 Z52 Ebene.jpg",
         "Region": "Région 5",
         "Zone": "Président de commission des œuvres sociales du club"
     },
     {
         "nomClub": "FLACQ",
+        "numeroAffiliation": "120212",
         "President": "Dharmaraj Ippili Appiah",
         "vicePresident": "Mala Roomila Tatiah",
         "Secretaire": "Varmeela MUTTUR",
@@ -617,30 +735,37 @@ export const clubsData = [
     },
     {
         "nomClub": "BEAU BASSIN/ROSE HILL",
+        "numeroAffiliation": "121538",
         "President": "Nathalie Congo-Poottaren",
         "vicePresident": "   ",
         "Secretaire": "Audrey Hannelas",
+        "clubLogoUrl": "/clubsIcons/R5 Z53 Beau Bassin Rose-Hill.png",
         "Region": "Région 5",
         "Zone": "Zone 53"
     },
     {
         "nomClub": "CASCAVELLE",
+        "numeroAffiliation": "180177",
         "President": "Dany Joel Li Hung Shun",
         "vicePresident": "   ",
         "Secretaire": "Komal Rughoo",
+        "clubLogoUrl": "/clubsIcons/R5 Z53 Cascavelle.png",
         "Region": "Région 5",
         "Zone": "Zone 53"
     },
     {
         "nomClub": "FLOREAL VACOAS",
+        "numeroAffiliation": "157529",
         "President": "Yudisteeraj Gopee",
         "vicePresident": "Vandana Joory",
         "Secretaire": "Marie Anne FRANCOIS",
+        "clubLogoUrl": "/clubsIcons/R5 Z53 Floréal Vacoas.png",
         "Region": "Région 5",
         "Zone": "Zone 53"
     },
     {
         "nomClub": "MAHEBOURG",
+        "numeroAffiliation": "171210",
         "President": "Jean Marc Michel Sookdawoo",
         "vicePresident": "Sabrina Virasamy",
         "Secretaire": "Anne-Julie Sookdawoo",
@@ -649,6 +774,7 @@ export const clubsData = [
     },
     {
         "nomClub": "QUATRE BORNES",
+        "numeroAffiliation": "43063",
         "President": "Hedley Hannelas",
         "vicePresident": "Angelique Narain",
         "Secretaire": "Davisen Sinnasamy",
@@ -657,14 +783,17 @@ export const clubsData = [
     },
     {
         "nomClub": "RIVIERE NOIRE",
+        "numeroAffiliation": "102615",
         "President": "Nandita Boodhoo",
         "vicePresident": "   ",
         "Secretaire": "Doris Holim",
+        "clubLogoUrl": "/clubsIcons/R5 Z53 RIVIÈRE NOIRE.jpg",
         "Region": "Région 5",
         "Zone": "Zone 53"
     },
     {
         "nomClub": "SAVANNE",
+        "numeroAffiliation": "121483",
         "President": "Sandeep Mangroo",
         "vicePresident": "Jacques Cateaux",
         "Secretaire": "Marica Elodie Catherine Moutia",
