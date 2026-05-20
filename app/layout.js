@@ -6,11 +6,11 @@ export const metadata = {
   opensGraph: {
     title: 'Lions Club Rapport',
     description: 'Générez un compte-rendu de réunion Lions Club avec aperçu et export JPG.',
-    url: 'https://compte-rendu-lc.netlify.app',
+    url: 'https://lions-club-cr.ingenosya.net/',
     siteName: 'Lions Club Rapport',
     images: [
       {
-        url: 'https://compte-rendu-lc.netlify.app/og-image.png',
+        url: 'https://lions-club-cr.ingenosya.net/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Lions Club Rapport - Générateur de compte-rendu de réunion',
@@ -23,7 +23,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Lions Club Rapport',
     description: 'Générez un compte-rendu de réunion Lions Club avec aperçu et export JPG.',
-    images: ['https://compte-rendu-lc.netlify.app/og-image.png'],
+    images: ['https://lions-club-cr.ingenosya.net/og-image.png'],
   },
 };
 
