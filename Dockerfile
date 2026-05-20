@@ -26,4 +26,4 @@ COPY --from=builder /app/next.config.js ./next.config.js
 
 EXPOSE 3009
 
-CMD ["npm", "run", "start", "--", "-p", "3009"]
+CMD ["npm", "run", "start"]
