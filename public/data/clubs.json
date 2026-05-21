@@ -10,11 +10,13 @@
     },
     {
         "nomClub": "MANAKARA",
-        "President": " ",
+        "President": "Tolotra Nomena",
         "vicePresident": "Tsan Adriano",
-        "Secretaire": "Herimanitriniaina Andrianarisoa Razafimandimby",
-        "Region": "Région 1",
-        "Zone": "Zone 11"
+        "Secretaire": "Hery Ny Aina",
+        "Region": "Region 1",
+        "Zone": "Zone 11",
+        "numeroAffiliation": "130750",
+        "clubLogoUrl": "/clubsIcons/MANAKARA.png"
     },
     {
         "nomClub": "TOLAGNARO FORT DAUPHIN",
@@ -799,5 +801,14 @@
         "Secretaire": "Marica Elodie Catherine Moutia",
         "Region": "Région 5",
         "Zone": "Zone 53"
+    },
+    {
+        "nomClub": "MANAKARA BE",
+        "numeroAffiliation": "130750",
+        "President": "Tolotra Nomena",
+        "vicePresident": "Tsan Adriano",
+        "Secretaire": "Hery Ny Aina",
+        "Region": "Region 1",
+        "Zone": "Zone 11"
     }
 ]

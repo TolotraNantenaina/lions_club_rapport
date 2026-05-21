@@ -29,9 +29,18 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const isDev = process.env.NODE_ENV !== 'production';
+
   return (
     <html lang="fr">
       <body className="bg-body">
+        {isDev && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: "if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(reg){reg.unregister();});});}",
+            }}
+          />
+        )}
         <PWARegister />
         {children}
       </body>

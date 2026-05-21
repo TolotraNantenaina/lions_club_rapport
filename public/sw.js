@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'lions-club-rapport-v1';
+const CACHE_VERSION = 'lions-club-rapport-v3';
 const APP_CACHE = `${CACHE_VERSION}-app`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
 const LOGOS_CACHE = `${CACHE_VERSION}-logos`;
@@ -58,7 +58,12 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    if (url.pathname === '/' || url.pathname === '/manifest.json' || url.pathname.startsWith('/_next/static/')) {
+    if (url.pathname === '/') {
+        event.respondWith(networkFirst(request, APP_CACHE));
+        return;
+    }
+
+    if (url.pathname === '/manifest.json') {
         event.respondWith(cacheFirst(request, APP_CACHE));
     }
 });
