@@ -1,0 +1,13 @@
+services:
+  lions-club-rapport:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lions-club-rapport
+    container_name: lions-club-rapport
+    restart: unless-stopped
+    ports:
+      - "3009:3009"
+    volumes:
+      - ./public/data:/app/public/data
+      - ./public/clubsIcons:/app/public/clubsIcons

@@ -3,9 +3,8 @@ import { SectionHeading } from "./sectionHeading";
 import { FormField } from "./formField";
 import { TextareaField } from "./textareaField";
 import { formatDate } from "../helpers/formatDate";
-import { clubsData } from "../constantes/clubsData";
 
-export default function Formulaire({ data, onChange }) {
+export default function Formulaire({ data, onChange, clubsData = [], clubsLoading = false, clubsError = '' }) {
     const [formData, setFormData] = useState(data);
     const [clubSearch, setClubSearch] = useState(data.clubName || '');
     const [isClubDropdownOpen, setIsClubDropdownOpen] = useState(false);
@@ -17,7 +16,7 @@ export default function Formulaire({ data, onChange }) {
             .map((club) => club.nomClub.trim())
             .filter(Boolean)
             .sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }))
-    ), []);
+    ), [clubsData]);
 
     useEffect(() => {
         setFormData(data);
@@ -48,13 +47,15 @@ export default function Formulaire({ data, onChange }) {
         }
 
         if (key === 'clubName') {
-            newData.president = clubsData.find((club) => club.nomClub === value)?.President || '';
-            newData.vicePresident = clubsData.find((club) => club.nomClub === value)?.vicePresident || '';
-            newData.secretary = clubsData.find((club) => club.nomClub === value)?.Secretaire || '';
-            newData.region = clubsData.find((club) => club.nomClub === value)?.Region || '';
-            newData.zone = clubsData.find((club) => club.nomClub === value)?.Zone || '';
-            newData.clubLogoUrl = clubsData.find((club) => club.nomClub === value)?.clubLogoUrl || '';
-            newData.numeroAffiliation = clubsData.find((club) => club.nomClub === value)?.numeroAffiliation || '';
+            const selectedClub = clubsData.find((club) => club.nomClub?.trim() === value);
+
+            newData.president = selectedClub?.President || '';
+            newData.vicePresident = selectedClub?.vicePresident || '';
+            newData.secretary = selectedClub?.Secretaire || '';
+            newData.region = selectedClub?.Region || '';
+            newData.zone = selectedClub?.Zone || '';
+            newData.clubLogoUrl = selectedClub?.clubLogoUrl || '';
+            newData.numeroAffiliation = selectedClub?.numeroAffiliation || '';
         }
 
         setFormData(newData);
@@ -117,7 +118,11 @@ export default function Formulaire({ data, onChange }) {
 
                                     {isClubDropdownOpen && (
                                         <div className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-lg border-2 border-[var(--border)] bg-white shadow-[0_16px_35px_rgba(0,0,0,0.14)]">
-                                            {filteredClubOptions.length > 0 ? (
+                                            {clubsLoading ? (
+                                                <p className="px-4 py-3 text-[0.95em] text-dark-grey">Chargement des clubs...</p>
+                                            ) : clubsError ? (
+                                                <p className="px-4 py-3 text-[0.95em] text-red-600">{clubsError}</p>
+                                            ) : filteredClubOptions.length > 0 ? (
                                                 filteredClubOptions.map((clubName) => (
                                                     <button
                                                         key={clubName}

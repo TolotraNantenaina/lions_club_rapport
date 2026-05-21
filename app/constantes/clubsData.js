@@ -1,3 +1,1 @@
-import clubsData from '../data/clubs.json';
-
-export { clubsData };
+export const CLUBS_DATA_URL = '/data/clubs.json';

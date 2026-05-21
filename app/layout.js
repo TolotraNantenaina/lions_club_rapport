@@ -1,4 +1,5 @@
 import './globals.css';
+import { PWARegister } from './components/pwaRegister';
 
 export const metadata = {
   title: 'Lions Club Rapport',
@@ -30,7 +31,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="fr">
-      <body className="bg-body">{children}</body>
+      <body className="bg-body">
+        <PWARegister />
+        {children}
+      </body>
     </html>
   );
 }

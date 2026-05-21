@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { initialData } from './constantes/initialData';
+import { CLUBS_DATA_URL } from './constantes/clubsData';
 import Formulaire from './components/formulaire';
 import { getPreviewCRBlocks, PreviewCRPage , PAGE_HEIGHT, PAGE_WIDTH, PAGE_BOTTOM_SAFE_SPACE} from './components/preview';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -18,6 +19,9 @@ export default function Home() {
     const [apercuValide, setApercuValide] = useState(false);
     const [apercuLoading, setApercuLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
+    const [clubsData, setClubsData] = useState([]);
+    const [clubsLoading, setClubsLoading] = useState(true);
+    const [clubsError, setClubsError] = useState('');
 
     const isEmpty = apercuUrls.length === 0;
     const isProcessing = apercuUrls.length === 0 && apercuLoading;
@@ -29,6 +33,44 @@ export default function Home() {
         setCurrentPage(0);
         }
     }, [apercuUrls.length]);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadClubsData = async () => {
+            try {
+                const response = await fetch(CLUBS_DATA_URL);
+
+                if (!response.ok) {
+                    throw new Error('Impossible de charger les clubs');
+                }
+
+                const clubs = await response.json();
+
+                if (isMounted) {
+                    setClubsData(Array.isArray(clubs) ? clubs : []);
+                    setClubsError('');
+                }
+            } catch (error) {
+                console.error(error);
+
+                if (isMounted) {
+                    setClubsData([]);
+                    setClubsError('Impossible de charger la liste des clubs');
+                }
+            } finally {
+                if (isMounted) {
+                    setClubsLoading(false);
+                }
+            }
+        };
+
+        loadClubsData();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const currentImage = apercuUrls[currentPage] ?? apercuUrls[0] ?? "";
     const hasMultiple = apercuUrls.length > 1;
@@ -208,7 +250,13 @@ export default function Home() {
 
             </div>
 
-            <Formulaire data={formData} onChange={setFormData} />
+            <Formulaire
+                data={formData}
+                onChange={setFormData}
+                clubsData={clubsData}
+                clubsLoading={clubsLoading}
+                clubsError={clubsError}
+            />
 
             <div className="text-slate-900 pt-4 pb-8 bg-transparent">
                 <div className="mx-auto grid gap-8">
