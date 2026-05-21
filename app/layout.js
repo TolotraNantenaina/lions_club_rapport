@@ -4,7 +4,21 @@ import { PWARegister } from './components/pwaRegister';
 export const metadata = {
   title: 'Lions Club Rapport',
   description: 'Générez un compte-rendu de réunion Lions Club avec aperçu et export JPG.',
-  opensGraph: {
+  applicationName: 'Lions Club Rapport',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Lions Rapport',
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/ico_app_pv_lc.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: '/ico_app_pv_lc.png',
+  },
+  openGraph: {
     title: 'Lions Club Rapport',
     description: 'Générez un compte-rendu de réunion Lions Club avec aperçu et export JPG.',
     url: 'https://lions-club-cr.ingenosya.net/',
@@ -28,19 +42,17 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
-  const isDev = process.env.NODE_ENV !== 'production';
+export const viewport = {
+  themeColor: '#173d68',
+};
 
+export default function RootLayout({ children }) {
   return (
     <html lang="fr">
+      <head>
+        <link rel="apple-touch-icon" href="/ico_app_pv_lc.png" />
+      </head>
       <body className="bg-body">
-        {isDev && (
-          <script
-            dangerouslySetInnerHTML={{
-              __html: "if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(reg){reg.unregister();});});}",
-            }}
-          />
-        )}
         <PWARegister />
         {children}
       </body>
