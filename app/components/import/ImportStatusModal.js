@@ -69,18 +69,20 @@ function XlsxContent({ data }) {
   const updatedCount = data.changes.filter((change) => change.status === 'updated').length;
   const createdCount = data.changes.filter((change) => change.status === 'created').length;
   const unchangedCount = data.changes.filter((change) => change.status === 'unchanged').length;
+  const deletedCount = data.changes.filter((change) => change.status === 'deleted').length;
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Metric label="Lignes détectées" value={data.rows.length} />
         <Metric label="Modifiés" value={updatedCount} />
         <Metric label="Nouveaux" value={createdCount} />
         <Metric label="Inchangés" value={unchangedCount} />
+        <Metric label="Supprimés" value={deletedCount} />
       </div>
 
       <RulesBlock />
-      <JsonPreviewTable rows={data.rows} />
+      <JsonPreviewTable rows={data.rows} columns={data.columns} />
 
       <div className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-900">
         <h3 className="text-sm font-black text-slate-900 dark:text-white">Comparaison avant / après</h3>
@@ -141,7 +143,9 @@ function RulesBlock() {
   return (
     <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200">
       <p className="font-black">Format XLSX attendu</p>
-      <p className="mt-1">Colonnes obligatoires : nom_club, numero, region, zone, president, secretaire, vice_president.</p>
+      <p className="mt-1">Colonnes obligatoires : nom_club, president, secretaire.</p>
+      <p className="mt-1">Colonnes optionnelles : numero, region, zone, vice_president, supprimer.</p>
+      <p className="mt-1">Pour supprimer un club, ajoutez la colonne supprimer avec la valeur oui sur la ligne concernée.</p>
       <p className="mt-1">Les logos doivent être nommés avec le slug du club en majuscules, par exemple MANAKARA.png.</p>
     </div>
   );

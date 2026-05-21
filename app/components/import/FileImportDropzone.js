@@ -68,7 +68,7 @@ export function FileImportDropzone({ clubsData, clubsLoading = false, onImportCo
 
   const analyzeXlsx = async (file) => {
     const parsed = await parseExcelFile(file);
-    const validationIssues = validateImportedClubRows(parsed.rows);
+    const validationIssues = validateImportedClubRows(parsed.rows, clubsData);
     const allIssues = [...parsed.issues, ...validationIssues];
     const errors = allIssues.filter((issue) => issue.type === 'error');
 
@@ -87,8 +87,9 @@ export function FileImportDropzone({ clubsData, clubsLoading = false, onImportCo
       fileName: file.name,
       fileSize: formatBytes(file.size),
       rows: parsed.rows,
+      columns: parsed.columns,
       issues: allIssues,
-      changes: buildClubChanges(clubsData, parsed.rows),
+      changes: buildClubChanges(clubsData, parsed.rows, parsed.columns),
     });
   };
 
@@ -146,7 +147,7 @@ export function FileImportDropzone({ clubsData, clubsLoading = false, onImportCo
       }
 
       setStatusMessage(modalData.kind === 'xlsx'
-        ? `Import XLSX terminé : ${result.updatedCount} modifié(s), ${result.createdCount} nouveau(x).`
+        ? `Import XLSX terminé : ${result.updatedCount} modifié(s), ${result.createdCount} nouveau(x), ${result.deletedCount ?? 0} supprimé(s).`
         : `Logo mis à jour pour ${result.clubName}.`);
       closeModal();
       await onImportComplete();

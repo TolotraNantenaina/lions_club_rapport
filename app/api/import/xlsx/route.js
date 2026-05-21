@@ -17,8 +17,9 @@ export async function POST(request) {
       );
     }
 
+    const currentClubs = await readClubsJson();
     const parsed = await parseExcelFile(file);
-    const validationIssues = validateImportedClubRows(parsed.rows);
+    const validationIssues = validateImportedClubRows(parsed.rows, currentClubs);
     const errors = [...parsed.issues, ...validationIssues].filter((issue) => issue.type === 'error');
 
     if (errors.length > 0) {
@@ -28,9 +29,8 @@ export async function POST(request) {
       );
     }
 
-    const currentClubs = await readClubsJson();
-    const changes = buildClubChanges(currentClubs, parsed.rows);
-    const nextClubs = applyClubUpdates(currentClubs, parsed.rows);
+    const changes = buildClubChanges(currentClubs, parsed.rows, parsed.columns);
+    const nextClubs = applyClubUpdates(currentClubs, parsed.rows, parsed.columns);
 
     await writeClubsJson(nextClubs);
 
@@ -42,6 +42,7 @@ export async function POST(request) {
       updatedCount: changes.filter((change) => change.status === 'updated').length,
       createdCount: changes.filter((change) => change.status === 'created').length,
       unchangedCount: changes.filter((change) => change.status === 'unchanged').length,
+      deletedCount: changes.filter((change) => change.status === 'deleted').length,
     });
   } catch (error) {
     console.error('Erreur import XLSX', error);
