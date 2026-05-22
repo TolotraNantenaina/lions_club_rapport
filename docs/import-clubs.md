@@ -2,21 +2,37 @@
 
 ## Fichier XLSX attendu
 
-La première feuille du fichier `.xlsx` doit contenir ces colonnes exactes :
+### Colonnes
+
+| Type | Colonnes |
+|------|----------|
+| Obligatoire | `nom_club` (clé primaire) |
+| Optionnelles | `numero`, `region`, `zone`, `president`, `secretaire`, `vice_president`, `supprimer` |
+
+Au moins **une** colonne optionnelle doit être présente dans le fichier.
+
+### Règles de valeur
+
+| Contenu de la cellule | Effet |
+|----------------------|-------|
+| Vide | Conserve la valeur existante dans `clubs.json` |
+| `vide` | Efface réellement le champ (enregistre une chaîne vide) |
+| Autre texte | Met à jour avec la nouvelle valeur |
+
+### Suppression
+
+Ajoutez la colonne `supprimer` avec la valeur `oui` sur la ligne du club à retirer.
+
+### Exemple
 
 ```text
-nom_club | numero | region | zone | president | secretaire | vice_president
+nom_club;president;secretaire
+MANAKARA;Nouveau Président;
+GRAND BAIE;;vide
 ```
 
-Exemple :
-
-```text
-nom_club;numero;region;zone;president;secretaire;vice_president
-GRAND BAIE;192302;Région 5;Zone 51;Poly Leung;Shirley Dawoo;Nom Vice-President
-POINTE AUX CANONNIERS;192290;Région 5;Zone 51;Marie-Catherine Tonta;Floryse Wang Fong;Nom Vice-President
-```
-
-L'application conserve la structure actuelle de `public/data/clubs.json`. Les champs utilisés par le PV sont mis à jour sans modifier le schéma existant.
+- Ligne 1 : met à jour le président, conserve le secrétaire existant
+- Ligne 2 : conserve le président existant, efface le secrétaire
 
 ## Exemple JSON actuel
 
@@ -29,7 +45,7 @@ L'application conserve la structure actuelle de `public/data/clubs.json`. Les ch
   "Secretaire": "Shirley Dawoo",
   "Region": "Région 5",
   "Zone": "Zone 51",
-  "clubLogoUrl": "/clubsIcons/grand-baie.png"
+  "clubLogoUrl": "/clubsIcons/GRAND-BAIE.png"
 }
 ```
 
@@ -37,11 +53,11 @@ L'application conserve la structure actuelle de `public/data/clubs.json`. Les ch
 
 Les logos doivent être au format `.png`, `.jpg` ou `.jpeg`.
 
-Le nom du fichier doit correspondre au slug du club :
+Le nom du fichier doit correspondre au slug du club en majuscules :
 
 ```text
-GRAND BAIE -> grand-baie.png
-SAINT-DENIS CŒUR MÉTISSE -> saint-denis-coeur-metisse.png
+GRAND BAIE -> GRAND-BAIE.png
+MANAKARA -> MANAKARA.png
 ```
 
 Les images sont enregistrées dans `public/clubsIcons`, puis `public/data/clubs.json` est mis à jour avec le nouveau `clubLogoUrl`.

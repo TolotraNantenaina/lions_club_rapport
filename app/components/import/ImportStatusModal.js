@@ -145,6 +145,7 @@ function RulesBlock() {
       <p className="font-black">Format XLSX attendu</p>
       <p className="mt-1">Colonne obligatoire : nom_club (clé primaire).</p>
       <p className="mt-1">Au moins une colonne optionnelle requise dans le fichier : numero, region, zone, president, secretaire, vice_president, supprimer.</p>
+      <p className="mt-1">Cellule vide : conserve la valeur existante. Saisir "vide" pour effacer réellement un champ.</p>
       <p className="mt-1">Pour supprimer un club, ajoutez la colonne supprimer avec la valeur oui sur la ligne concernée.</p>
       <p className="mt-1">Les logos doivent être nommés avec le slug du club en majuscules, par exemple MANAKARA.png.</p>
     </div>
