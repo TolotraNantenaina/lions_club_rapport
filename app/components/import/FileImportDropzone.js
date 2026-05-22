@@ -68,7 +68,7 @@ export function FileImportDropzone({ clubsData, clubsLoading = false, onImportCo
 
   const analyzeXlsx = async (file) => {
     const parsed = await parseExcelFile(file);
-    const validationIssues = validateImportedClubRows(parsed.rows, clubsData);
+    const validationIssues = validateImportedClubRows(parsed.rows, clubsData, parsed.columns);
     const allIssues = [...parsed.issues, ...validationIssues];
     const errors = allIssues.filter((issue) => issue.type === 'error');
 

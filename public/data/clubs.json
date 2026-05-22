@@ -621,7 +621,7 @@
         "vicePresident": "   ",
         "Secretaire": "Véronique René SOALAZA",
         "Region": "Région 4",
-        "Zone": "Zone 42"
+        "Zone": "Zone 41"
     },
     {
         "nomClub": "ALBION LE PHARE",
@@ -704,7 +704,7 @@
         "Secretaire": "Marilyn Ernest",
         "clubLogoUrl": "/clubsIcons/CUREPIPE.png",
         "Region": "Région 5",
-        "Zone": "Président de commission des œuvres sociales du club"
+        "Zone": "Zone 52"
     },
     {
         "nomClub": "EBENE",
@@ -714,7 +714,7 @@
         "Secretaire": "Riana Rahamefy",
         "clubLogoUrl": "/clubsIcons/EBENE.jpg",
         "Region": "Région 5",
-        "Zone": "Président de commission des œuvres sociales du club"
+        "Zone": "Zone 52"
     },
     {
         "nomClub": "FLACQ",
@@ -723,7 +723,7 @@
         "vicePresident": "Mala Roomila Tatiah",
         "Secretaire": "Varmeela MUTTUR",
         "Region": "Région 5",
-        "Zone": "Président de commission des œuvres sociales du club"
+        "Zone": "Zone 52"
     },
     {
         "nomClub": "GRAND PORT",
@@ -799,5 +799,17 @@
         "Secretaire": "Marica Elodie Catherine Moutia",
         "Region": "Région 5",
         "Zone": "Zone 53"
+    },
+    {
+        "nomClub": "ANTANANARIVO SANTATRA NEW CENTURY",
+        "numeroAffiliation": "67190",
+        "Region": "Région 3",
+        "Zone": "Zone 31"
+    },
+    {
+        "nomClub": "PL DES PALMISTES LE PALMIER",
+        "numeroAffiliation": "127862",
+        "Region": "Région 2",
+        "Zone": "Zone 24"
     }
 ]

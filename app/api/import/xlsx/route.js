@@ -19,7 +19,7 @@ export async function POST(request) {
 
     const currentClubs = await readClubsJson();
     const parsed = await parseExcelFile(file);
-    const validationIssues = validateImportedClubRows(parsed.rows, currentClubs);
+    const validationIssues = validateImportedClubRows(parsed.rows, currentClubs, parsed.columns);
     const errors = [...parsed.issues, ...validationIssues].filter((issue) => issue.type === 'error');
 
     if (errors.length > 0) {
