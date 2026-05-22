@@ -1,22 +1,10 @@
 'use client';
 
 import { useCallback, useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { initialData } from './constantes/initialData';
 import { CLUBS_DATA_URL } from './constantes/clubsData';
 import Formulaire from './components/formulaire';
-
-const FileImportDropzone = dynamic(
-    () => import('./components/import/FileImportDropzone').then((mod) => mod.FileImportDropzone),
-    {
-        ssr: false,
-        loading: () => (
-            <section className="w-full rounded-[24px] bg-white/95 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.12)] dark:bg-slate-950">
-                <p className="text-sm text-slate-500 dark:text-slate-300">Chargement de l’import…</p>
-            </section>
-        ),
-    }
-);
 import { getPreviewCRBlocks, PreviewCRPage , PAGE_HEIGHT, PAGE_WIDTH, PAGE_BOTTOM_SAFE_SPACE} from './components/preview';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ProcessingLoader } from './components/processingLoader';
@@ -35,7 +23,6 @@ export default function Home() {
     const [clubsData, setClubsData] = useState([]);
     const [clubsLoading, setClubsLoading] = useState(true);
     const [clubsError, setClubsError] = useState('');
-    const [importPanelOpen, setImportPanelOpen] = useState(false);
 
     const isEmpty = apercuUrls.length === 0;
     const isProcessing = apercuUrls.length === 0 && apercuLoading;
@@ -238,11 +225,11 @@ export default function Home() {
     };
 
     return (
-        <main className="mx-8 max-[480px]:mx-4 flex min-h-screen flex-col">
+        <main className="mx-8 max-[480px]:mx-4 min-h-screen">
 
             <div className="text-slate-900 pt-8 bg-transparent">
 
-                <header className="relative mb-7 text-white mx-auto w-full  min-[1200px]:max-w-[990px]">
+                <header className="relative mb-7 text-white mx-auto w-full min-[1200px]:max-w-[990px]">
 
                     <div className="text-center">
                         <div className="mx-auto flex h-[60px] items-center justify-center gap-2 py-3">
@@ -252,154 +239,111 @@ export default function Home() {
                         <p className="text-[1.1em]">Compte-Rendu de Réunion Statutaire</p>
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={() => setImportPanelOpen((open) => !open)}
-                        aria-label={importPanelOpen ? 'Masquer l’import des clubs' : 'Afficher l’import des clubs'}
-                        aria-expanded={importPanelOpen}
-                        className={[
-                            'absolute right-0 top-1/4 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full transition duration-300',
-                            importPanelOpen
-                                ? 'text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.85)]'
-                                : 'text-white hover:text-white/80',
-                        ].join(' ')}
+                    {/*<Link
+                        href="/parametre"
+                        className="absolute right-0 top-1/4 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-white transition hover:text-white/80"
+                        aria-label="Ouvrir les paramètres d’import"
                     >
                         <svg aria-hidden="true" viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
                         </svg>
-                    </button>
+                    </Link>*/}
 
                 </header>
 
             </div>
 
-            <div
-                className={[
-                    'grid min-h-0 transition-[grid-template-rows] duration-300 ease-in-out',
-                    importPanelOpen ? 'flex-1 mb-32' : '',
-                ].join(' ')}
-                style={{ gridTemplateRows: importPanelOpen ? '1fr' : '0fr' }}
-            >
-                <div className={importPanelOpen ? 'flex min-h-0 items-center justify-center overflow-hidden' : 'overflow-hidden'}>
-                    {importPanelOpen && (
-                        <div className="mx-auto w-full min-[1200px]:max-w-[990px]">
-                            <FileImportDropzone
-                                clubsData={clubsData}
-                                clubsLoading={clubsLoading}
-                                onImportComplete={async () => {
-                                    await loadClubsData();
-                                    showToast('✓ Données importées avec succès');
-                                }}
-                            />
-                        </div>
-                    )}
-                </div>
-            </div>
+            <Formulaire
+                data={formData}
+                onChange={setFormData}
+                clubsData={clubsData}
+                clubsLoading={clubsLoading}
+                clubsError={clubsError}
+            />
 
-            <div
-                className="grid min-h-0 transition-[grid-template-rows] duration-300 ease-in-out"
-                style={{ gridTemplateRows: importPanelOpen ? '0fr' : '1fr' }}
-                aria-hidden={importPanelOpen}
-            >
-                <div className="overflow-hidden">
-                    <Formulaire
-                        data={formData}
-                        onChange={setFormData}
-                        clubsData={clubsData}
-                        clubsLoading={clubsLoading}
-                        clubsError={clubsError}
-                    />
-
-                    <div className="text-slate-900 pt-4 pb-8 bg-transparent">
-                        <div className="mx-auto grid gap-8">
-                            <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto"> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
-                                <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
-                                    <div className="grid gap-4">
-                                        <button type="button" onClick={apercuJpg} className="btn-primary">
-                                            📊 Aperçu du rapport
-                                        </button>
-                                    </div>
-                                    <div className="grid gap-4 grid-cols-2">
-                                        <button type="button" onClick={exportJpg} className="btn-secondary">
-                                            📸 Générer JPG
-                                        </button>
-                                        <button type="button" onClick={resetForm} className="btn-reset">
-                                            🔄 Réinitialiser
-                                        </button>
-                                    </div>
-                                </section>
+            <div className="text-slate-900 pt-4 pb-8 bg-transparent">
+                <div className="mx-auto grid gap-8">
+                    <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto">
+                        <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+                            <div className="grid gap-4">
+                                <button type="button" onClick={apercuJpg} className="btn-primary">
+                                    📊 Aperçu du rapport
+                                </button>
                             </div>
+                            <div className="grid gap-4 grid-cols-2">
+                                <button type="button" onClick={exportJpg} className="btn-secondary">
+                                    📸 Générer JPG
+                                </button>
+                                <button type="button" onClick={resetForm} className="btn-reset">
+                                    🔄 Réinitialiser
+                                </button>
+                            </div>
+                        </section>
+                    </div>
 
-                            <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto"> {/*  xl:grid-cols-[1.2fr_0.8fr]"> */}
-                                <section className="rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
-                                    <div className="mb-6 text-center items-center px-4 py-3 text-primary text-[1.4em] text-semibold">
-                                        <h1 className="text-2xl text-center font-bold text-primary">📄 Aperçu du Rapport</h1>
-                                    </div>
-                                    {/* Preview area */}
-                                    <div className={`relative rounded-xl border border-border overflow-hidden bg-muted min-h-64
+                    <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto">
+                        <section className="rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+                            <div className="mb-6 text-center items-center px-4 py-3 text-primary text-[1.4em] text-semibold">
+                                <h1 className="text-2xl text-center font-bold text-primary">📄 Aperçu du Rapport</h1>
+                            </div>
+                            <div className={`relative rounded-xl border border-border overflow-hidden bg-muted min-h-64
         transition-all duration-300`}>
 
-                                        {/* Empty state */}
-                                        <div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 transition-opacity duration-300
+                                <div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 transition-opacity duration-300
           ${isEmpty ? `opacity-100` : `opacity-0 pointer-events-none`}  light-bg`}>
-                                            <div className='text-center mb-5'>
-                                                <h2 className='text-2xl font-bold text-primary'>LIONS CLUB</h2>
-                                                <p className="text-sm text-muted-foreground text-center text-accent">Compte-Rendu de Réunion Statutaire</p>
-                                            </div>
-                                            <div className="w-12 h-12 rounded-2xl bg-border/60 flex items-center justify-center">
-                                                <svg className="w-6 h-6 text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground text-center text-dark-grey">Cliquez sur "Aperçu du Rapport" pour générer un aperçu</p>
-                                            <p className="text-sm text-muted-foreground text-center text-dark-grey">Votre image convertie apparaîtra ici</p>
-                                        </div>
-
-                                        {/* Processing state */}
-                                        <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300
-          ${isProcessing ? `opacity-100` : `opacity-0 pointer-events-none`}`}>
-                                            <ProcessingLoader label="Conversion du document en image…" />
-                                        </div>
-
-                                        {/* Success state */}
-                                        <div className={`transition-opacity duration-500
-          ${isSuccess ? `opacity-100` : `opacity-0 pointer-events-none`}`}>
-                                            <div className="p-3 flex flex-col items-center gap-4">
-                                                {hasMultiple && (<button
-                                                    type="button"
-                                                    disabled={currentPage === 0}
-                                                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
-                                                    className="text-sm text-muted-foreground disabled:opacity-40 text-left mr-auto"
-                                                > Précédent </button>)}
-                                                {hasMultiple && (<button
-                                                    type="button"
-                                                    disabled={currentPage >= apercuUrls.length - 1}
-                                                    onClick={() => setCurrentPage((p) => Math.min(p + 1, apercuUrls.length - 1))}
-                                                    className="text-sm text-muted-foreground disabled:opacity-40 text-right ml-auto mt-[-35px]"
-                                                > Suivant </button>)}
-                                                <img
-                                                    src={currentImage}
-                                                    alt="Converted document preview"
-                                                    className="w-full rounded-lg shadow-custom object-contain max-h-[520px] animate-fade-in-up"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Error state */}
-                                        <div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 transition-opacity duration-300
-          ${isError ? `opacity-100` : `opacity-0 pointer-events-none`}`}>
-                                            <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950 flex items-center justify-center">
-                                                <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                                </svg>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground">La conversion a échoué — veuillez réessayer</p>
-                                        </div>
+                                    <div className='text-center mb-5'>
+                                        <h2 className='text-2xl font-bold text-primary'>LIONS CLUB</h2>
+                                        <p className="text-sm text-muted-foreground text-center text-accent">Compte-Rendu de Réunion Statutaire</p>
                                     </div>
-                                </section>
+                                    <div className="w-12 h-12 rounded-2xl bg-border/60 flex items-center justify-center">
+                                        <svg className="w-6 h-6 text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground text-center text-dark-grey">Cliquez sur "Aperçu du Rapport" pour générer un aperçu</p>
+                                    <p className="text-sm text-muted-foreground text-center text-dark-grey">Votre image convertie apparaîtra ici</p>
+                                </div>
+
+                                <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300
+          ${isProcessing ? `opacity-100` : `opacity-0 pointer-events-none`}`}>
+                                    <ProcessingLoader label="Conversion du document en image…" />
+                                </div>
+
+                                <div className={`transition-opacity duration-500
+          ${isSuccess ? `opacity-100` : `opacity-0 pointer-events-none`}`}>
+                                    <div className="p-3 flex flex-col items-center gap-4">
+                                        {hasMultiple && (<button
+                                            type="button"
+                                            disabled={currentPage === 0}
+                                            onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
+                                            className="text-sm text-muted-foreground disabled:opacity-40 text-left mr-auto"
+                                        > Précédent </button>)}
+                                        {hasMultiple && (<button
+                                            type="button"
+                                            disabled={currentPage >= apercuUrls.length - 1}
+                                            onClick={() => setCurrentPage((p) => Math.min(p + 1, apercuUrls.length - 1))}
+                                            className="text-sm text-muted-foreground disabled:opacity-40 text-right ml-auto mt-[-35px]"
+                                        > Suivant </button>)}
+                                        <img
+                                            src={currentImage}
+                                            alt="Converted document preview"
+                                            className="w-full rounded-lg shadow-custom object-contain max-h-[520px] animate-fade-in-up"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 transition-opacity duration-300
+          ${isError ? `opacity-100` : `opacity-0 pointer-events-none`}`}>
+                                    <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950 flex items-center justify-center">
+                                        <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">La conversion a échoué — veuillez réessayer</p>
+                                </div>
                             </div>
-                        </div>
+                        </section>
                     </div>
                 </div>
             </div>
@@ -421,5 +365,3 @@ export default function Home() {
         </main >
     );
 }
-
-
