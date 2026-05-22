@@ -238,7 +238,7 @@ export default function Home() {
     };
 
     return (
-        <main className="mx-8 max-[400px]:mx-4 flex min-h-screen flex-col">
+        <main className="mx-8 max-[480px]:mx-4 flex min-h-screen flex-col">
 
             <div className="text-slate-900 pt-8 bg-transparent">
 
