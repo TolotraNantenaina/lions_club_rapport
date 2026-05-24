@@ -1,10 +1,9 @@
-const CACHE_VERSION = 'lions-club-rapport-v3';
+const CACHE_VERSION = 'lions-club-rapport-v4';
 const APP_CACHE = `${CACHE_VERSION}-app`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
 const LOGOS_CACHE = `${CACHE_VERSION}-logos`;
 
-const APP_ASSETS = [
-    '/',
+const STATIC_SHELL_ASSETS = [
     '/manifest.json',
     '/favicon.ico',
     '/ico_app_pv_lc.png',
@@ -13,11 +12,22 @@ const APP_ASSETS = [
     '/og-image.png',
 ];
 
+const NAVIGATION_PATHS = new Set(['/', '/parametre']);
+
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(APP_CACHE)
-            .then((cache) => cache.addAll(APP_ASSETS))
-            .then(() => self.skipWaiting())
+        (async () => {
+            const appCache = await caches.open(APP_CACHE);
+
+            await Promise.allSettled(
+                STATIC_SHELL_ASSETS.map((asset) => appCache.add(asset)),
+            );
+
+            await cacheClubsData();
+            await prefetchClubLogos();
+
+            await self.skipWaiting();
+        })(),
     );
 });
 
@@ -29,9 +39,9 @@ self.addEventListener('activate', (event) => {
             .then((cacheNames) => Promise.all(
                 cacheNames
                     .filter((cacheName) => cacheName.startsWith('lions-club-rapport-') && !allowedCaches.includes(cacheName))
-                    .map((cacheName) => caches.delete(cacheName))
+                    .map((cacheName) => caches.delete(cacheName)),
             ))
-            .then(() => self.clients.claim())
+            .then(() => self.clients.claim()),
     );
 });
 
@@ -49,7 +59,7 @@ self.addEventListener('fetch', (event) => {
     }
 
     if (url.pathname === '/data/clubs.json') {
-        event.respondWith(networkFirst(request, DATA_CACHE));
+        event.respondWith(handleClubsDataRequest(request));
         return;
     }
 
@@ -58,15 +68,81 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    if (url.pathname === '/') {
+    if (NAVIGATION_PATHS.has(url.pathname)) {
         event.respondWith(networkFirst(request, APP_CACHE));
         return;
     }
 
-    if (url.pathname === '/manifest.json') {
+    if (STATIC_SHELL_ASSETS.includes(url.pathname)) {
         event.respondWith(cacheFirst(request, APP_CACHE));
+        return;
     }
 });
+
+async function handleClubsDataRequest(request) {
+    const response = await networkFirst(request, DATA_CACHE);
+
+    prefetchClubLogos().catch(() => {});
+
+    return response;
+}
+
+async function cacheClubsData() {
+    try {
+        const response = await fetch('/data/clubs.json');
+
+        if (response.ok) {
+            const cache = await caches.open(DATA_CACHE);
+            await cache.put('/data/clubs.json', response.clone());
+        }
+    } catch (error) {
+        console.warn('Impossible de mettre clubs.json en cache à l’installation', error);
+    }
+}
+
+async function prefetchClubLogos() {
+    try {
+        const cache = await caches.open(LOGOS_CACHE);
+        const dataCache = await caches.open(DATA_CACHE);
+        const cachedData = await dataCache.match('/data/clubs.json');
+        const response = cachedData || await fetch('/data/clubs.json');
+
+        if (!response || !response.ok) {
+            return;
+        }
+
+        const clubs = await response.json();
+        const logoUrls = [...new Set(
+            (Array.isArray(clubs) ? clubs : [])
+                .map((club) => club.clubLogoUrl)
+                .filter(Boolean),
+        )];
+
+        await Promise.allSettled(
+            logoUrls.map((logoUrl) => cacheLogoUrl(cache, logoUrl)),
+        );
+    } catch (error) {
+        console.warn('Impossible de précharger les logos clubs', error);
+    }
+}
+
+async function cacheLogoUrl(cache, logoUrl) {
+    const request = new Request(logoUrl);
+
+    if (await matchCached(cache, request)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(request);
+
+        if (response.ok) {
+            await cache.put(request, response.clone());
+        }
+    } catch (error) {
+        console.warn(`Logo non mis en cache : ${logoUrl}`, error);
+    }
+}
 
 async function networkFirst(request, cacheName) {
     const cache = await caches.open(cacheName);
@@ -80,7 +156,7 @@ async function networkFirst(request, cacheName) {
 
         return response;
     } catch (error) {
-        const cachedResponse = await cache.match(request);
+        const cachedResponse = await matchCached(cache, request);
 
         if (cachedResponse) {
             return cachedResponse;
@@ -92,17 +168,48 @@ async function networkFirst(request, cacheName) {
 
 async function cacheFirst(request, cacheName) {
     const cache = await caches.open(cacheName);
-    const cachedResponse = await cache.match(request);
+    const cachedResponse = await matchCached(cache, request);
 
     if (cachedResponse) {
         return cachedResponse;
     }
 
-    const response = await fetch(request);
+    try {
+        const response = await fetch(request);
 
-    if (response.ok) {
-        await cache.put(request, response.clone());
+        if (response.ok) {
+            await cache.put(request, response.clone());
+        }
+
+        return response;
+    } catch (error) {
+        const fallback = await matchCached(cache, request);
+
+        if (fallback) {
+            return fallback;
+        }
+
+        throw error;
+    }
+}
+
+async function matchCached(cache, request) {
+    const directMatch = await cache.match(request);
+
+    if (directMatch) {
+        return directMatch;
     }
 
-    return response;
+    const targetPath = decodeURIComponent(new URL(request.url).pathname);
+    const keys = await cache.keys();
+
+    for (const key of keys) {
+        const keyPath = decodeURIComponent(new URL(key.url).pathname);
+
+        if (keyPath === targetPath) {
+            return cache.match(key);
+        }
+    }
+
+    return undefined;
 }
