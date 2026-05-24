@@ -199,7 +199,7 @@ export default function Home() {
         setApercuLoading(false);
     };
 
-    const exportJpg = async () => {
+    const exportJpgZip = async () => {
         showToast('⏳ Génération en cours...');
         const imagesUrls = await generatePreviewImages('❌ Erreur lors de la génération du JPG');
 
@@ -223,6 +223,86 @@ export default function Home() {
         });
 
     };
+
+    const saveImagesToDirectory = async (dirHandle, imagesUrls, baseName) => {
+        // Remplacement de Promise.all par une boucle for...of pour traiter un fichier à la fois
+        let index = 0;
+        for (const img of imagesUrls) {
+            const blob = base64ToBlob(img, 'image/jpeg');
+            const fileName = `${baseName}_${index + 1}.jpg`;
+            const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
+            const writable = await fileHandle.createWritable();
+
+            await writable.write(blob);
+            await writable.close(); // Cette ligne attend la fin réelle de l'écriture sur le disque
+            index++;
+        }
+    };
+
+    const exportJpg = async () => {
+        let dirHandle = null;
+
+        if (typeof window.showDirectoryPicker === 'function') {
+            try {
+                dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            } catch (error) {
+                if (error?.name === 'AbortError') {
+                    return;
+                }
+            }
+        }
+
+        showToast('⏳ Génération en cours...');
+        const imagesUrls = await generatePreviewImages('❌ Erreur lors de la génération du JPG');
+
+        if (imagesUrls.length === 0) {
+            return;
+        }
+
+        const now = new Date();
+        const stamp = `${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+        const baseName = `lions-club-rapport_${formData.meetingDate}_${stamp}`;
+
+        if (dirHandle) {
+            await saveImagesToDirectory(dirHandle, imagesUrls, baseName);
+            showToast(`✓ ${imagesUrls.length} image(s) enregistrée(s) dans le dossier`);
+            return;
+        }
+
+        // Appel de la nouvelle fonction séquentielle temporisée
+        downloadImagesSimultaneously(imagesUrls, baseName);
+        showToast(`✓ Téléchargements lancés — Autorisez les téléchargements multiples si demandés`);
+    };
+
+    const downloadImagesSimultaneously = (imagesUrls, baseName) => {
+        imagesUrls.forEach((img, index) => {
+            const blob = base64ToBlob(img, 'image/jpeg');
+            const objectUrl = URL.createObjectURL(blob);
+    
+            // Crée une iframe invisible pour isoler le téléchargement (Astuce Firefox)
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+    
+            // On injecte le téléchargement à l'intérieur de l'iframe
+            const iframeDoc = iframe.contentWindow.document;
+            const link = iframeDoc.createElement('a');
+            
+            link.href = objectUrl;
+            link.download = `${baseName}_${index + 1}.jpg`;
+            iframeDoc.body.appendChild(link);
+    
+            // Déclenche le clic dans le contexte de l'iframe
+            link.click();
+    
+            // Nettoie l'iframe et révoque l'URL après un léger délai
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+                URL.revokeObjectURL(objectUrl);
+            }, 1000); // 1 seconde suffit pour lancer le processus
+        });
+    };
+    
 
     return (
         <main className="mx-8 max-[480px]:mx-4 min-h-screen">
