@@ -8,8 +8,8 @@ import Formulaire from './components/formulaire';
 import { getPreviewCRBlocks, PreviewCRPage , PAGE_HEIGHT, PAGE_WIDTH, PAGE_BOTTOM_SAFE_SPACE} from './components/preview';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ProcessingLoader } from './components/processingLoader';
+import { JpgDownloadModal } from './components/JpgDownloadModal';
 import { base64ToBlob } from './helpers/bas64ToBlob';
-import JSZip from 'jszip';
 import html2canvas from 'html2canvas';
 
 
@@ -23,6 +23,7 @@ export default function Home() {
     const [clubsData, setClubsData] = useState([]);
     const [clubsLoading, setClubsLoading] = useState(true);
     const [clubsError, setClubsError] = useState('');
+    const [downloadModal, setDownloadModal] = useState(null);
 
     const isEmpty = apercuUrls.length === 0;
     const isProcessing = apercuUrls.length === 0 && apercuLoading;
@@ -199,110 +200,52 @@ export default function Home() {
         setApercuLoading(false);
     };
 
-    const exportJpgZip = async () => {
-        showToast('⏳ Génération en cours...');
-        const imagesUrls = await generatePreviewImages('❌ Erreur lors de la génération du JPG');
-
-        const our = new Date().getHours();
-        const min = new Date().getMinutes();
-        const sec = new Date().getSeconds();
-        const _ = `${our}-${min}-${sec}`;
-
-        const zip = new JSZip();
-
-        imagesUrls.forEach((img, index) => {
-            const blob = base64ToBlob(img, 'image/jpg');
-            const fileName = `lions-club-rapport_${formData.meetingDate}_${_}_${index + 1}.jpg`;
-            zip.file(fileName, blob);
-        });
-        zip.generateAsync({ type: 'blob' }).then((content) => {
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(content);
-            link.download = `lions-club-rapport_${formData.meetingDate}_${_}.zip`;
-            link.click();
-        });
-
+    const buildExportBaseName = () => {
+        const now = new Date();
+        const stamp = `${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+        return `lions-club-rapport_${formData.meetingDate}_${stamp}`;
     };
 
-    const saveImagesToDirectory = async (dirHandle, imagesUrls, baseName) => {
-        // Remplacement de Promise.all par une boucle for...of pour traiter un fichier à la fois
-        let index = 0;
-        for (const img of imagesUrls) {
-            const blob = base64ToBlob(img, 'image/jpeg');
-            const fileName = `${baseName}_${index + 1}.jpg`;
-            const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
-            const writable = await fileHandle.createWritable();
+    const downloadSingleJpg = (imageUrl, fileName) => {
+        const blob = base64ToBlob(imageUrl, 'image/jpeg');
+        const link = document.createElement('a');
+        const objectUrl = URL.createObjectURL(blob);
 
-            await writable.write(blob);
-            await writable.close(); // Cette ligne attend la fin réelle de l'écriture sur le disque
-            index++;
-        }
+        link.href = objectUrl;
+        link.download = fileName;
+        link.click();
+
+        window.setTimeout(() => {
+            URL.revokeObjectURL(objectUrl);
+        }, 1000);
     };
 
     const exportJpg = async () => {
-        let dirHandle = null;
+        const baseName = buildExportBaseName();
 
-        if (typeof window.showDirectoryPicker === 'function') {
-            try {
-                dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-            } catch (error) {
-                if (error?.name === 'AbortError') {
-                    return;
-                }
-            }
-        }
+        setDownloadModal({
+            baseName,
+            images: [],
+            isLoading: true,
+        });
 
-        showToast('⏳ Génération en cours...');
         const imagesUrls = await generatePreviewImages('❌ Erreur lors de la génération du JPG');
 
         if (imagesUrls.length === 0) {
+            setDownloadModal(null);
             return;
         }
 
-        const now = new Date();
-        const stamp = `${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
-        const baseName = `lions-club-rapport_${formData.meetingDate}_${stamp}`;
-
-        if (dirHandle) {
-            await saveImagesToDirectory(dirHandle, imagesUrls, baseName);
-            showToast(`✓ ${imagesUrls.length} image(s) enregistrée(s) dans le dossier`);
-            return;
-        }
-
-        // Appel de la nouvelle fonction séquentielle temporisée
-        downloadImagesSimultaneously(imagesUrls, baseName);
-        showToast(`✓ Téléchargements lancés — Autorisez les téléchargements multiples si demandés`);
-    };
-
-    const downloadImagesSimultaneously = (imagesUrls, baseName) => {
-        imagesUrls.forEach((img, index) => {
-            const blob = base64ToBlob(img, 'image/jpeg');
-            const objectUrl = URL.createObjectURL(blob);
-    
-            // Crée une iframe invisible pour isoler le téléchargement (Astuce Firefox)
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-    
-            // On injecte le téléchargement à l'intérieur de l'iframe
-            const iframeDoc = iframe.contentWindow.document;
-            const link = iframeDoc.createElement('a');
-            
-            link.href = objectUrl;
-            link.download = `${baseName}_${index + 1}.jpg`;
-            iframeDoc.body.appendChild(link);
-    
-            // Déclenche le clic dans le contexte de l'iframe
-            link.click();
-    
-            // Nettoie l'iframe et révoque l'URL après un léger délai
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-                URL.revokeObjectURL(objectUrl);
-            }, 1000); // 1 seconde suffit pour lancer le processus
+        setDownloadModal({
+            baseName,
+            images: imagesUrls,
+            isLoading: false,
         });
     };
-    
+
+    const closeDownloadModal = () => {
+        setDownloadModal(null);
+    };
 
     return (
         <main className="mx-8 max-[480px]:mx-4 min-h-screen">
@@ -435,6 +378,16 @@ export default function Home() {
                     </div>
                 )
             }
+
+            {downloadModal && (
+                <JpgDownloadModal
+                    baseName={downloadModal.baseName}
+                    images={downloadModal.images}
+                    isLoading={downloadModal.isLoading}
+                    onClose={closeDownloadModal}
+                    onDownloadPage={downloadSingleJpg}
+                />
+            )}
             
             <footer className="fixed bottom-2 right-6 z-40 opacity-70 pointer-events-none select-none text-center">
                 <span className="text-xs text-slate-500 font-mono">
