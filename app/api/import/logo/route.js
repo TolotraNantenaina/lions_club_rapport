@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { findClubByLogoFileName } from '../../../../lib/validateLogo';
+import { getClubCompositeKey } from '../../../../lib/validateClubData';
 import { saveClubLogo, readClubsJson, writeClubsJson } from '../../../../lib/serverClubStorage';
 
 export const runtime = 'nodejs';
@@ -27,8 +28,12 @@ export async function POST(request) {
     }
 
     const nextLogoUrl = await saveClubLogo(file, logoValidation.club);
+    const targetCompositeKey = getClubCompositeKey(
+      logoValidation.club.nomClub,
+      logoValidation.club.typeClub,
+    );
     const updatedClubs = clubs.map((club) => {
-      if (club.nomClub === logoValidation.club?.nomClub) {
+      if (getClubCompositeKey(club.nomClub, club.typeClub) === targetCompositeKey) {
         return {
           ...club,
           clubLogoUrl: nextLogoUrl,

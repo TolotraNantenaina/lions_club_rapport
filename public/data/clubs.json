@@ -795,12 +795,360 @@
         "nomClub": "ANTANANARIVO SANTATRA NEW CENTURY",
         "numeroAffiliation": "67190",
         "Region": "Région 3",
-        "Zone": "Zone 31"
+        "Zone": "Zone 31",
+        "President": "",
+        "vicePresident": "",
+        "Secretaire": "",
+        "typeClub": "LION"
     },
     {
         "nomClub": "PL DES PALMISTES LE PALMIER",
         "numeroAffiliation": "127862",
         "Region": "Région 2",
-        "Zone": "Zone 24"
+        "Zone": "Zone 24",
+        "President": "",
+        "vicePresident": "",
+        "Secretaire": "",
+        "typeClub": "LION"
+    },
+    {
+        "nomClub": "ANKOAY D' AMBOHIBAO",
+        "typeClub": "LEO",
+        "numeroAffiliation": "1",
+        "President": "Laka Rakotomalala Voary Nomena Gracia",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 32"
+    },
+    {
+        "nomClub": "ANTANANARIVO DIAVOLANA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "2",
+        "President": "MIHARISOA Marine Fizanah",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 33"
+    },
+    {
+        "nomClub": "ANTANANARIVO HAZOVOLA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "3",
+        "President": "SOANOSY Leong Ilonah",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 31"
+    },
+    {
+        "nomClub": "ANTANANARIVO IVOLANITRA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "4",
+        "President": "MIHARISOA Marine Fizanah",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 31"
+    },
+    {
+        "nomClub": "ANTANANARIVO MITANTSOA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "5",
+        "President": "SOANOSY Leong Ilonah",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 13"
+    },
+    {
+        "nomClub": "ANTANANARIVO SOATIA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "6",
+        "President": "RAKOTOARISON Hasina Jerry",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 13"
+    },
+    {
+        "nomClub": "ANTANANARIVO TARAMASOANDRO",
+        "typeClub": "LEO",
+        "numeroAffiliation": "7",
+        "President": "Rajoharison Kiady",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 31"
+    },
+    {
+        "nomClub": "ANTANANARIVO TRANOVOLA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "8",
+        "President": "SOANOSY Leong Ilonah",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 13"
+    },
+    {
+        "nomClub": "ANTANANARIVO TSARA DIA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "9",
+        "President": "RAKOTOARISON Hasina Jerry",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 31"
+    },
+    {
+        "nomClub": "ANTANANARIVO VOLAMAHITSY",
+        "typeClub": "LEO",
+        "numeroAffiliation": "10",
+        "President": "MIHARISOA Marine Fizanah",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 32"
+    },
+    {
+        "nomClub": "TANANA ARIVO",
+        "typeClub": "LEO",
+        "numeroAffiliation": "11",
+        "President": "RATSIMALIA Faniry Hasiniaina",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 33"
+    },
+    {
+        "nomClub": "TSARA RINDRA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "12",
+        "President": "RABEZANDRINY Noah",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 32"
+    },
+    {
+        "nomClub": "TSIKY AMBOHIMANGA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "13",
+        "President": "Tony Faramalala",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 31"
+    },
+    {
+        "nomClub": "ANTANANARIVO LOHARANO",
+        "typeClub": "LEO",
+        "numeroAffiliation": "14",
+        "President": "Rajoharison Kiady",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 31"
+    },
+    {
+        "nomClub": "ANTANANARIVO RAVINALA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "15",
+        "President": "RAKOTOARISON Hasina Jerry",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 31"
+    },
+    {
+        "nomClub": "BARKLY QUATRE BORNES",
+        "typeClub": "LEO",
+        "numeroAffiliation": "1",
+        "President": "Julia Boodoo Marie Anaïs",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 5",
+        "Zone": "Zone 53"
+    },
+    {
+        "nomClub": "FLACQ",
+        "typeClub": "LEO",
+        "numeroAffiliation": "2",
+        "President": "Dhavish Appa",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 5",
+        "Zone": "Zone 52"
+    },
+    {
+        "nomClub": "MOKA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "3",
+        "President": "Harshika Bhoobun",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 5",
+        "Zone": "Zone 51"
+    },
+    {
+        "nomClub": "QUATRE BORNES",
+        "typeClub": "LEO",
+        "numeroAffiliation": "4",
+        "President": "Ann'Dora Marco",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 5",
+        "Zone": "Zone 53"
+    },
+    {
+        "nomClub": "RÉSIDENCE BARKLY OMÉGA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "5",
+        "President": "Gregory Noah Salomon",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 5",
+        "Zone": "Zone 53"
+    },
+    {
+        "nomClub": "RODRIGUES 2",
+        "typeClub": "LEO",
+        "numeroAffiliation": "6",
+        "President": "Malbroook Ronaldhino",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 5",
+        "Zone": "Zone 51"
+    },
+    {
+        "nomClub": "BON ACCUEIL LALLMATIE",
+        "typeClub": "LEO",
+        "numeroAffiliation": "7",
+        "President": "Ramtohul Drishti",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 5",
+        "Zone": "Zone 52"
+    },
+    {
+        "nomClub": "MAYOTTE ARC EN CIEL",
+        "typeClub": "LEO",
+        "numeroAffiliation": "8",
+        "President": "Ylang",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 4",
+        "Zone": "Zone 43"
+    },
+    {
+        "nomClub": "AMBATONDRAZAKA LAC ALAOTRA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "1",
+        "President": "",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 32"
+    },
+    {
+        "nomClub": "BAOBAB MAJUNGA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "2",
+        "President": "RAZAFIMAHEFA Philibert",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 31"
+    },
+    {
+        "nomClub": "D IHARANA VOHÉMAR",
+        "typeClub": "LEO",
+        "numeroAffiliation": "3",
+        "President": "Randrianarisoa Tsioriniaina Mathieu",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 4",
+        "Zone": "Zone 42"
+    },
+    {
+        "nomClub": "DE L'ANOSY",
+        "typeClub": "LEO",
+        "numeroAffiliation": "4",
+        "President": "Razafimamonjy narindra mickaelle",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 1",
+        "Zone": "Zone 11"
+    },
+    {
+        "nomClub": "DIÉGO SUAREZ",
+        "typeClub": "LEO",
+        "numeroAffiliation": "5",
+        "President": "RAMAHERY Anyl Anydez",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 4",
+        "Zone": "Zone 41"
+    },
+    {
+        "nomClub": "EHOALA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "6",
+        "President": "HENINTSOA Ialiniaina Francias Nancy",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 1",
+        "Zone": "Zone 11"
+    },
+    {
+        "nomClub": "FIHERENA TULÉAR",
+        "typeClub": "LEO",
+        "numeroAffiliation": "7",
+        "President": "RANJOHERY Mandimbisoa Rejela Antonio",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 1",
+        "Zone": "Zone 11"
+    },
+    {
+        "nomClub": "SAMBAVA VANILLE",
+        "typeClub": "LEO",
+        "numeroAffiliation": "8",
+        "President": "TOTO raissa",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 4",
+        "Zone": "Zone 42"
+    },
+    {
+        "nomClub": "TAMATAVE",
+        "typeClub": "LEO",
+        "numeroAffiliation": "9",
+        "President": "Razafindrafarasoa Olympe Elma",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 3",
+        "Zone": "Zone 33"
+    },
+    {
+        "nomClub": "VANILLE SAMBAVA",
+        "typeClub": "LEO",
+        "numeroAffiliation": "10",
+        "President": "",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 4",
+        "Zone": "Zone 42"
+    },
+    {
+        "nomClub": "ANKARATRA ANTSIRABE",
+        "typeClub": "LEO",
+        "numeroAffiliation": "11",
+        "President": "Ranovisy Antsirabe",
+        "vicePresident": "",
+        "Secretaire": "",
+        "Region": "Région 1",
+        "Zone": "Zone 12"
     }
 ]

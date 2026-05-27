@@ -1,37 +1,40 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { SectionHeading } from "./sectionHeading";
 import { FormField } from "./formField";
 import { TextareaField } from "./textareaField";
 import { formatDate } from "../helpers/formatDate";
+import { CLUB_TYPE, filterClubsByTypeAndQuery } from "../../lib/clubSearchFilter";
 
 export default function Formulaire({ data, onChange, clubsData = [], clubsLoading = false, clubsError = '' }) {
     const [formData, setFormData] = useState(data);
     const [clubSearch, setClubSearch] = useState(data.clubName || '');
+    const [selectedClubType, setSelectedClubType] = useState(CLUB_TYPE.LION);
     const [isClubDropdownOpen, setIsClubDropdownOpen] = useState(false);
     const [isReunionDropdownOpen, setIsReunionDropdownOpen] = useState(false);
+    const clubSearchInputRef = useRef(null);
     const memberFields = ['memberPresent', 'memberExcused', 'memberAbsent'];
     const reunionOptions = ['', 'AG', 'AG EXTRA', 'CA', 'CA EXTRA', 'AGM', 'AUTRE'];
-    const clubOptions = useMemo(() => (
-        clubsData
-            .map((club) => club.nomClub.trim())
-            .filter(Boolean)
-            .sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }))
-    ), [clubsData]);
+    const filteredClubOptions = useMemo(
+        () => filterClubsByTypeAndQuery(clubsData, selectedClubType, clubSearch),
+        [clubsData, selectedClubType, clubSearch],
+    );
+
+    const handleClubTypeChange = (clubType, event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        setSelectedClubType(clubType);
+        setIsClubDropdownOpen(true);
+
+        window.requestAnimationFrame(() => {
+            clubSearchInputRef.current?.focus();
+        });
+    };
 
     useEffect(() => {
         setFormData(data);
         setClubSearch(data.clubName || '');
     }, [data]);
-
-    const filteredClubOptions = useMemo(() => {
-        const query = clubSearch.trim().toLowerCase();
-
-        if (!query) {
-            return clubOptions;
-        }
-
-        return clubOptions.filter((clubName) => clubName.toLowerCase().includes(query));
-    }, [clubOptions, clubSearch]);
 
     const calculateMemberTotal = (dataToCalculate) => {
         return memberFields.reduce((total, field) => {
@@ -81,10 +84,11 @@ export default function Formulaire({ data, onChange, clubsData = [], clubsLoadin
                     <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                         <SectionHeading title="📋 Informations de la réunion" />
                         <div className="grid gap-6 sm:grid-cols-1">
-                            <FormField label="Club" htmlFor="clubName">
+                            <FormField label="Club" htmlFor="club-search-input">
                                 <div className="relative">
                                     <input
-                                        id="clubName"
+                                        id="club-search-input"
+                                        ref={clubSearchInputRef}
                                         type="text"
                                         placeholder="Rechercher un club..."
                                         value={clubSearch}
@@ -95,29 +99,49 @@ export default function Formulaire({ data, onChange, clubsData = [], clubsLoadin
                                         }}
                                         onFocus={() => setIsClubDropdownOpen(true)}
                                         onBlur={() => window.setTimeout(() => setIsClubDropdownOpen(false), 120)}
-                                        className="form-input bg-light-grey pt-[12px] pr-10"
+                                        className="form-input bg-light-grey pt-[12px] pr-[7.5rem]"
                                     />
-                                    <button
-                                        type="button"
-                                        aria-label="Afficher la liste des clubs"
-                                        onMouseDown={(e) => e.preventDefault()}
-                                        onClick={() => setIsClubDropdownOpen((isOpen) => !isOpen)}
-                                        className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center text-slate-500 transition hover:text-primary"
+
+                                    <div
+                                        id="club-type-segmented-control"
+                                        className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center rounded-[10px] bg-[#d4af37] p-1"
+                                        onMouseDown={(event) => event.preventDefault()}
                                     >
-                                        <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4">
-                                            <path
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth="1.5"
-                                                d="m6 8 4 4 4-4"
-                                            />
-                                        </svg>
-                                    </button>
+                                        <button
+                                            id="club-type-lion-btn"
+                                            type="button"
+                                            aria-pressed={selectedClubType === CLUB_TYPE.LION}
+                                            onClick={(event) => handleClubTypeChange(CLUB_TYPE.LION, event)}
+                                            className={[
+                                                'rounded-[8px] px-3 py-1 text-sm font-semibold transition',
+                                                selectedClubType === CLUB_TYPE.LION
+                                                    ? 'bg-accent text-white shadow-sm'
+                                                    : 'text-slate-800 hover:text-primary',
+                                            ].join(' ')}
+                                        >
+                                            Lion
+                                        </button>
+                                        <button
+                                            id="club-type-leo-btn"
+                                            type="button"
+                                            aria-pressed={selectedClubType === CLUB_TYPE.LEO}
+                                            onClick={(event) => handleClubTypeChange(CLUB_TYPE.LEO, event)}
+                                            className={[
+                                                'rounded-[8px] px-3 py-1 text-sm font-semibold transition',
+                                                selectedClubType === CLUB_TYPE.LEO
+                                                    ? 'bg-accent text-white shadow-sm'
+                                                    : 'text-slate-800 hover:text-primary',
+                                            ].join(' ')}
+                                        >
+                                            Leo
+                                        </button>
+                                    </div>
 
                                     {isClubDropdownOpen && (
-                                        <div className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-lg border-2 border-[var(--border)] bg-white shadow-[0_16px_35px_rgba(0,0,0,0.14)]">
+                                        <div
+                                            id="club-options-list"
+                                            className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-lg border-2 border-[var(--border)] bg-white shadow-[0_16px_35px_rgba(0,0,0,0.14)]"
+                                        >
                                             {clubsLoading ? (
                                                 <p className="px-4 py-3 text-[0.95em] text-dark-grey">Chargement des clubs...</p>
                                             ) : clubsError ? (

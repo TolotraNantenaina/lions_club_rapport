@@ -6,8 +6,8 @@
 
 | Type | Colonnes |
 |------|----------|
-| Obligatoire | `nom_club` (clé primaire) |
-| Optionnelles | `numero`, `region`, `zone`, `president`, `secretaire`, `vice_president`, `supprimer` |
+| Obligatoire | `nom_club`,  `type_club` (clé composite) |
+| Optionnelles | `numero`, `region`, `zone`, `president`, `secretaire`, `vice_president`, `type_club`, `supprimer` |
 
 Au moins **une** colonne optionnelle doit être présente dans le fichier.
 
@@ -25,11 +25,10 @@ Ajoutez la colonne `supprimer` avec la valeur `oui` sur la ligne du club à reti
 
 ### Exemple
 
-```text
-nom_club;president;secretaire
-MANAKARA;Nouveau Président;
-GRAND BAIE;;vide
-```
+| nom_club | president | secretaire |
+|----------|-----------|------------|
+| MANAKARA | Nouveau Présiden |     |
+| GRAND BAIE|     | vide |
 
 - Ligne 1 : met à jour le président, conserve le secrétaire existant
 - Ligne 2 : conserve le président existant, efface le secrétaire
@@ -45,6 +44,7 @@ GRAND BAIE;;vide
   "Secretaire": "Shirley Dawoo",
   "Region": "Région 5",
   "Zone": "Zone 51",
+  "typeClub": "LIONS",
   "clubLogoUrl": "/clubsIcons/GRAND-BAIE.png"
 }
 ```
