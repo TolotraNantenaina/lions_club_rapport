@@ -46,14 +46,14 @@ function splitLongLine(line, maxLength = 320) {
     return chunks;
 }
 
-function HeaderCR({ clubName, numeroAffiliation, clubLogoUrl, region, zone }) {
+function HeaderCR({ clubName, clubType, numeroAffiliation, clubLogoUrl, region, zone }) {
     return (
         <header className="mb-12 grid grid-cols-[120px_1fr_120px] items-start gap-6 text-center">
             <div className="mx-auto flex h-[155px] w-[155px] items-center justify-center">
                 <img src="/ico_lions_club.png" alt="Logo Lions Club" className="h-[155px] w-[155px]" />
             </div>
             <div>
-                <h1 className="text-[42px] font-black leading-tight tracking-wide text-[#173d68]">LIONS CLUB</h1>
+                <h1 className="text-[42px] font-black leading-tight tracking-wide text-[#173d68]">{ clubType === 'LEO' ? 'LEO' : 'LIONS'} CLUB</h1>
                 <h2 className="text-[38px] font-black leading-tight tracking-wide text-[#173d68]">{clubName || '<--clubName non renseigné -->'}</h2>
                 <p className="mt-2 text-[22px] font-semibold text-[#173d68]">DISTRICT 417 – {region || '<--region non renseigné -->'} - {zone || '<--zone non renseigné -->'}</p>
                 <p className="mt-3 text-[18px] text-slate-700">{/*Date de remise de la charte : {'<--dateOfCharter non renseigné-->'} - */}N° Club : { numeroAffiliation || '<--numeroAffiliation non renseigné-->'}</p>
@@ -272,11 +272,10 @@ function CRBlock({ block, president, vicePresident, secretary, location }) {
 }
 
 export function PreviewCRPage({ blocks, pageNumber, headerData = {} }) {
-    console.log(headerData);
     return (
         <article className={pageClassName}>
             <div data-preview-flow="true">
-                <HeaderCR clubName={headerData.clubName} numeroAffiliation={headerData.numeroAffiliation} clubLogoUrl={headerData.clubLogoUrl} region={headerData.region} zone={headerData.zone} />
+                <HeaderCR clubName={headerData.clubName} clubType={headerData.clubType}  numeroAffiliation={headerData.numeroAffiliation} clubLogoUrl={headerData.clubLogoUrl} region={headerData.region} zone={headerData.zone} />
                 <div className="space-y-1">
                     {blocks.map((block, index) => (
                         <CRBlock key={`${block.type}-${block.title || block.label || block.text || index}`} block={block} president={headerData.president} vicePresident={headerData.vicePresident} secretary={headerData.secretary} location={headerData.location} />

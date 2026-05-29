@@ -59,6 +59,7 @@ export default function Formulaire({ data, onChange, clubsData = [], clubsLoadin
             newData.zone = selectedClub?.Zone || '';
             newData.clubLogoUrl = selectedClub?.clubLogoUrl || '';
             newData.numeroAffiliation = selectedClub?.numeroAffiliation || '';
+            newData.clubType = selectedClub?.typeClub || '';
         }
 
         setFormData(newData);
