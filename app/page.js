@@ -203,7 +203,7 @@ export default function Home() {
     const buildExportBaseName = () => {
         const now = new Date();
         const stamp = `${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
-        return `lions-club-rapport_${formData.meetingDate}_${stamp}`;
+        return `${formData.meetingDate}_${formData.clubName}${formData.clubType&&'_'+formData.clubType}_${stamp}`;
     };
 
     const downloadSingleJpg = (imageUrl, fileName) => {
