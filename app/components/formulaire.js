@@ -13,7 +13,7 @@ export default function Formulaire({ data, onChange, clubsData = [], clubsLoadin
     const [isReunionDropdownOpen, setIsReunionDropdownOpen] = useState(false);
     const clubSearchInputRef = useRef(null);
     const memberFields = ['memberPresent', 'memberExcused', 'memberAbsent'];
-    const reunionOptions = ['', 'AG', 'AG EXTRA', 'CA', 'CA EXTRA', 'AGM', 'AUTRE'];
+    const reunionOptions = ['', 'AG/RS', 'AG/RS EXTRA', 'AG/RS MIXTE', 'CA', 'CA EXTRA', 'AGM', 'AUTRE'];
     const filteredClubOptions = useMemo(
         () => filterClubsByTypeAndQuery(clubsData, selectedClubType, clubSearch),
         [clubsData, selectedClubType, clubSearch],
