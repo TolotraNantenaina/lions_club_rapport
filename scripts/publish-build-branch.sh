@@ -118,13 +118,21 @@ git clean -fdx >/dev/null 2>&1 || true
 
 rsync -a "$STAGE_DIR/" ./
 
-TRACKED_PATHS=(.next public package.json package-lock.json next.config.js)
+git add -f .next/
+git add -f public/
+git add -f package.json package-lock.json next.config.js
 
 if [[ "${PUBLISH_BUILD_WITHOUT_NODE_MODULES:-0}" != "1" ]]; then
-  TRACKED_PATHS+=(node_modules)
+  git add -f node_modules/
 fi
 
-git add -f "${TRACKED_PATHS[@]}"
+NEXT_FILE_COUNT="$(git diff --cached --name-only | grep -c '^\.next/' || true)"
+
+if [[ "$NEXT_FILE_COUNT" -eq 0 ]]; then
+  fail "aucun fichier .next/ n'a ete ajoute au commit. Verifiez npm run build."
+fi
+
+log "${NEXT_FILE_COUNT} fichiers .next/ ajoutes au commit."
 
 if git diff --cached --quiet; then
   fail "aucun fichier à committer sur $BUILD_BRANCH."
@@ -133,8 +141,8 @@ fi
 COMMIT_MSG="build: release $VERSION"
 
 if [[ "${PUBLISH_BUILD_DRY_RUN:-0}" == "1" ]]; then
-  log "[dry-run] Commit qui aurait été créé : $COMMIT_MSG"
-  git diff --cached --stat
+  log "[dry-run] Commit qui aurait ete cree : $COMMIT_MSG"
+  git diff --cached --stat | tail -20
   exit 0
 fi
 
