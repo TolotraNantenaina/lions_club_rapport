@@ -8,6 +8,22 @@ services:
     restart: unless-stopped
     ports:
       - "3009:3009"
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
     volumes:
+      # Données clubs et logos : synchronisés avec le dossier source sur le serveur
       - ./public/data:/app/public/data
       - ./public/clubsIcons:/app/public/clubsIcons
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3009').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

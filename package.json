@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start -p 3009",
     "lint": "next lint",
-    "publish:build": "bash scripts/publish-build-branch.sh"
+    "publish:build": "bash scripts/publish-build-branch.sh",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "deploy": "bash scripts/deploy-compose.sh --pull"
   },
   "dependencies": {
     "html2canvas": "^1.4.1",
