@@ -7,7 +7,6 @@
 #   PUBLISH_BUILD_DRY_RUN=1                simule sans commit/push
 #   PUBLISH_BUILD_SKIP_PUSH=1              commit local uniquement
 #   PUBLISH_BUILD_WITHOUT_NODE_MODULES=1   branche plus légère (npm ci côté client)
-#   PUBLISH_BUILD_FORCE=1                  ignore un working tree sale
 #
 set -euo pipefail
 
@@ -19,6 +18,7 @@ STAGE_DIR="${PUBLISH_BUILD_STAGE_DIR:-}"
 ORIGINAL_BRANCH=""
 BUILD_BRANCH=""
 VERSION=""
+STASHED=0
 
 log() {
   printf '[publish-build] %s\n' "$*"
@@ -32,6 +32,20 @@ fail() {
 restore_branch() {
   if [[ -n "$ORIGINAL_BRANCH" ]] && git rev-parse --verify "$ORIGINAL_BRANCH" >/dev/null 2>&1; then
     git checkout "$ORIGINAL_BRANCH" >/dev/null 2>&1 || true
+  fi
+
+  if [[ "$STASHED" -eq 1 ]]; then
+    log "Restauration des changements locaux..."
+    git stash pop >/dev/null || log "Attention : restaurez manuellement avec git stash pop."
+    STASHED=0
+  fi
+}
+
+stash_working_tree_if_needed() {
+  if [[ -n "$(git status --porcelain)" ]]; then
+    log "Mise de cote temporaire des changements locaux..."
+    git stash push -u -m "publish-build autostash $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    STASHED=1
   fi
 }
 
@@ -62,21 +76,17 @@ VERSION="$(node -p "require('./package.json').version")"
 BUILD_BRANCH="build/$VERSION"
 STAGE_DIR="${PUBLISH_BUILD_STAGE_DIR:-/tmp/lions-build-$VERSION-$$}"
 
-if [[ "${PUBLISH_BUILD_FORCE:-0}" != "1" ]]; then
-  if ! git diff --quiet || ! git diff --cached --quiet; then
-    fail "des changements non commités existent sur $ORIGINAL_BRANCH. Committez, stash, ou lancez avec PUBLISH_BUILD_FORCE=1."
-  fi
-fi
+stash_working_tree_if_needed
 
 log "Version : $VERSION"
 log "Branche cible : $BUILD_BRANCH"
 log "Remote : $REMOTE"
 log "Branche source : $ORIGINAL_BRANCH"
 
-log "Build Next.js en cours…"
+log "Build Next.js en cours..."
 npm run build
 
-log "Préparation du dossier de staging : $STAGE_DIR"
+log "Preparation du dossier de staging : ${STAGE_DIR}"
 rm -rf "$STAGE_DIR"
 mkdir -p "$STAGE_DIR/.next" "$STAGE_DIR/public"
 
@@ -87,21 +97,21 @@ cp package.json package-lock.json next.config.js "$STAGE_DIR/"
 if [[ "${PUBLISH_BUILD_WITHOUT_NODE_MODULES:-0}" == "1" ]]; then
   log "Mode léger : node_modules exclu (npm ci requis côté client)."
 else
-  log "Installation des dépendances production…"
+  log "Installation des dependances production..."
   (
     cd "$STAGE_DIR"
     npm ci --omit=dev
   )
 fi
 
-log "Récupération du remote $REMOTE…"
-git fetch "$REMOTE"
+log "Recuperation du remote ${REMOTE}..."
+git fetch "${REMOTE}"
 
 if git show-ref --verify --quiet "refs/heads/$BUILD_BRANCH"; then
   git branch -D "$BUILD_BRANCH" >/dev/null
 fi
 
-log "Création de la branche orpheline $BUILD_BRANCH…"
+log "Creation de la branche orpheline ${BUILD_BRANCH}..."
 git checkout --orphan "$BUILD_BRANCH"
 git rm -rf . >/dev/null 2>&1 || true
 git clean -fdx >/dev/null 2>&1 || true
@@ -137,6 +147,6 @@ if [[ "${PUBLISH_BUILD_SKIP_PUSH:-0}" == "1" ]]; then
   exit 0
 fi
 
-git push -u "$REMOTE" "$BUILD_BRANCH" --force
-log "Push effectué vers $REMOTE/$BUILD_BRANCH (remplace la branche build existante le cas échéant)."
-log "Récupération client : git clone -b $BUILD_BRANCH <repo> && cd lions-club-rapport && npm run start"
+git push -u "${REMOTE}" "${BUILD_BRANCH}" --force
+log "Push effectue vers ${REMOTE}/${BUILD_BRANCH} (remplace la branche build existante le cas echeant)."
+log "Recuperation client : git clone -b ${BUILD_BRANCH} <repo> && npm run start"
