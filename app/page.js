@@ -10,6 +10,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { ProcessingLoader } from './components/processingLoader';
 import { JpgDownloadModal } from './components/JpgDownloadModal';
 import { base64ToBlob } from './helpers/bas64ToBlob';
+import { prepareHtml2CanvasClone } from './helpers/html2canvasUtils';
 import html2canvas from 'html2canvas';
 
 
@@ -145,6 +146,7 @@ export default function Home() {
 
     const renderHtmlToJpg = async (htmlString, errorMessage) => {
         const tempDiv = createPreviewContainer(htmlString);
+        const sourceRoot = tempDiv.firstElementChild || tempDiv;
 
         try {
             const canvas = await html2canvas(tempDiv, {
@@ -157,13 +159,8 @@ export default function Home() {
                 windowHeight: PAGE_HEIGHT,
                 logging: false,
                 letterRendering: true,
-                onclone: (clonedDoc) => {
-                    const inputs = clonedDoc.querySelectorAll('input, select, textarea');
-                    inputs.forEach(input => {
-                        input.style.boxSizing = 'border-box';
-                        input.style.appearance = 'none';
-                        input.style.webkitAppearance = 'none';
-                    });
+                onclone: (clonedDocument, clonedElement) => {
+                    prepareHtml2CanvasClone(sourceRoot, clonedDocument, clonedElement.firstElementChild || clonedElement);
                 }
             });
 
