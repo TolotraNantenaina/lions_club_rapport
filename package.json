@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start -p 3009",
-    "lint": "next lint"
+    "lint": "next lint",
+    "publish:build": "bash scripts/publish-build-branch.sh"
   },
   "dependencies": {
     "html2canvas": "^1.4.1",
