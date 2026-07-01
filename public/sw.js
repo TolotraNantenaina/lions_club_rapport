@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'lions-club-rapport-v4';
+const CACHE_VERSION = 'lions-club-rapport-v5';
 const APP_CACHE = `${CACHE_VERSION}-app`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
 const LOGOS_CACHE = `${CACHE_VERSION}-logos`;
@@ -80,11 +80,9 @@ self.addEventListener('fetch', (event) => {
 });
 
 async function handleClubsDataRequest(request) {
-    const response = await networkFirst(request, DATA_CACHE);
-
-    prefetchClubLogos().catch(() => {});
-
-    return response;
+    return staleWhileRevalidate(request, DATA_CACHE, () => {
+        prefetchClubLogos().catch(() => {});
+    });
 }
 
 async function cacheClubsData() {
@@ -142,6 +140,39 @@ async function cacheLogoUrl(cache, logoUrl) {
     } catch (error) {
         console.warn(`Logo non mis en cache : ${logoUrl}`, error);
     }
+}
+
+async function staleWhileRevalidate(request, cacheName, onRevalidate) {
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await matchCached(cache, request);
+
+    const revalidate = fetch(request)
+        .then(async (response) => {
+            if (response.ok) {
+                await cache.put(request, response.clone());
+
+                if (onRevalidate) {
+                    onRevalidate();
+                }
+            }
+
+            return response;
+        })
+        .catch(() => {});
+
+    if (cachedResponse) {
+        revalidate.catch(() => {});
+        prefetchClubLogos().catch(() => {});
+        return cachedResponse;
+    }
+
+    const response = await revalidate;
+
+    if (response && response.ok) {
+        return response;
+    }
+
+    throw new Error('clubs.json indisponible');
 }
 
 async function networkFirst(request, cacheName) {
