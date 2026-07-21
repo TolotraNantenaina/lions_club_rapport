@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'lions-club-rapport-v5';
+const CACHE_VERSION = 'lions-club-rapport-v6';
 const APP_CACHE = `${CACHE_VERSION}-app`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
 const LOGOS_CACHE = `${CACHE_VERSION}-logos`;
@@ -64,7 +64,7 @@ self.addEventListener('fetch', (event) => {
     }
 
     if (url.pathname.startsWith('/clubsIcons/')) {
-        event.respondWith(cacheFirst(request, LOGOS_CACHE));
+        event.respondWith(networkFirst(request, LOGOS_CACHE));
         return;
     }
 
@@ -80,9 +80,9 @@ self.addEventListener('fetch', (event) => {
 });
 
 async function handleClubsDataRequest(request) {
-    return staleWhileRevalidate(request, DATA_CACHE, () => {
-        prefetchClubLogos().catch(() => {});
-    });
+    const response = await networkFirst(request, DATA_CACHE);
+    prefetchClubLogos().catch(() => {});
+    return response;
 }
 
 async function cacheClubsData() {
@@ -101,9 +101,7 @@ async function cacheClubsData() {
 async function prefetchClubLogos() {
     try {
         const cache = await caches.open(LOGOS_CACHE);
-        const dataCache = await caches.open(DATA_CACHE);
-        const cachedData = await dataCache.match('/data/clubs.json');
-        const response = cachedData || await fetch('/data/clubs.json');
+        const response = await fetch('/data/clubs.json', { cache: 'no-store' });
 
         if (!response || !response.ok) {
             return;
@@ -126,10 +124,6 @@ async function prefetchClubLogos() {
 
 async function cacheLogoUrl(cache, logoUrl) {
     const request = new Request(logoUrl);
-
-    if (await matchCached(cache, request)) {
-        return;
-    }
 
     try {
         const response = await fetch(request);

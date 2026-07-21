@@ -3,7 +3,7 @@ import { SectionHeading } from "./sectionHeading";
 import { FormField } from "./formField";
 import { TextareaField } from "./textareaField";
 import { formatDate } from "../helpers/formatDate";
-import { CLUB_TYPE, filterClubsByTypeAndQuery } from "../../lib/clubSearchFilter";
+import { CLUB_TYPE, filterClubsByTypeAndQuery, normalizeClubType } from "../../lib/clubSearchFilter";
 
 export default function Formulaire({ data, onChange, clubsData = [], clubsLoading = false, clubsError = '' }) {
     const [formData, setFormData] = useState(data);
@@ -42,6 +42,15 @@ export default function Formulaire({ data, onChange, clubsData = [], clubsLoadin
         }, 0).toString();
     };
 
+    const findSelectedClub = (clubName) => {
+        const normalizedSelectedType = normalizeClubType(selectedClubType);
+
+        return clubsData.find((club) => {
+            return normalizeClubType(club.typeClub) === normalizedSelectedType
+                && club.nomClub?.trim() === clubName;
+        });
+    };
+
     const updateField = (key, value) => {
         const newData = { ...formData, [key]: value };
 
@@ -50,7 +59,7 @@ export default function Formulaire({ data, onChange, clubsData = [], clubsLoadin
         }
 
         if (key === 'clubName') {
-            const selectedClub = clubsData.find((club) => club.nomClub?.trim() === value);
+            const selectedClub = findSelectedClub(value);
 
             newData.president = selectedClub?.President || '';
             newData.vicePresident = selectedClub?.vicePresident || '';

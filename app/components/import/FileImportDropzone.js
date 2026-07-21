@@ -13,6 +13,22 @@ const ACCEPTED_FILES = {
   'image/jpeg': ['.jpg', '.jpeg'],
 };
 
+async function clearClubRuntimeCaches() {
+  if (!('caches' in window)) {
+    return;
+  }
+
+  const cacheNames = await caches.keys();
+  await Promise.all(
+    cacheNames
+      .filter((cacheName) => (
+        cacheName.startsWith('lions-club-rapport-')
+        && (cacheName.endsWith('-data') || cacheName.endsWith('-logos'))
+      ))
+      .map((cacheName) => caches.delete(cacheName)),
+  );
+}
+
 export function FileImportDropzone({ clubsData, clubsLoading = false, onImportComplete }) {
   const [modalData, setModalData] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -150,6 +166,7 @@ export function FileImportDropzone({ clubsData, clubsLoading = false, onImportCo
         ? `Import XLSX terminé : ${result.updatedCount} modifié(s), ${result.createdCount} nouveau(x), ${result.deletedCount ?? 0} supprimé(s).`
         : `Logo mis à jour pour ${result.clubName}.`);
       closeModal();
+      await clearClubRuntimeCaches();
       await onImportComplete();
     } catch (error) {
       console.error('Erreur pendant la confirmation d’import', error);

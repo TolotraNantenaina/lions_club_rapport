@@ -41,7 +41,7 @@ export default function ParametrePage() {
         setClubsLoading(true);
 
         try {
-            const response = await fetch(CLUBS_DATA_URL);
+            const response = await fetch(CLUBS_DATA_URL, { cache: 'no-store' });
 
             if (!response.ok) {
                 throw new Error('Impossible de charger les clubs');

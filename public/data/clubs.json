@@ -575,7 +575,8 @@
         "Secretaire": "RAFARALAHISOA Fano Hasina",
         "Region": "Région 3",
         "Zone": "Zone 34",
-        "typeClub": "LION"
+        "typeClub": "LION",
+        "clubLogoUrl": "/clubsIcons/ANTANANARIVO MIRANANDRO-LION.png"
     },
     {
         "nomClub": "ANTANANARIVO  VALIHA",
@@ -749,7 +750,8 @@
         "Secretaire": "Wang Fong Floryse",
         "Region": "Région 5",
         "Zone": "Zone 51",
-        "typeClub": "LION"
+        "typeClub": "LION",
+        "clubLogoUrl": "/clubsIcons/POINTE AUX CANONNIERS-LION.jpeg"
     },
     {
         "nomClub": "BON ACCUEIL LALLMATIE",
