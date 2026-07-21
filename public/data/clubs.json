@@ -402,17 +402,6 @@
         "typeClub": "LION"
     },
     {
-        "nomClub": "ANTANANARIVO SANTATRA NC",
-        "numeroAffiliation": "67190",
-        "President": "RAMAHAROSON Hoby Heriniaina",
-        "vicePresident": "MAMITIANA Francia Léonce",
-        "Secretaire": "RADY Soahary Noronantenaina",
-        "clubLogoUrl": "/clubsIcons/ANTANANARIVO SANTATRA NC.jpeg",
-        "Region": "Région 3",
-        "Zone": "Zone 31",
-        "typeClub": "LION"
-    },
-    {
         "nomClub": "ANTANANARIVO TSARA TANANA",
         "numeroAffiliation": "104812",
         "President": "ANDRIANANANTANY Ony Soanavalona",
@@ -576,7 +565,7 @@
         "Region": "Région 3",
         "Zone": "Zone 34",
         "typeClub": "LION",
-        "clubLogoUrl": "/clubsIcons/ANTANANARIVO MIRANANDRO-LION.png"
+        "clubLogoUrl": "/clubsIcons/ANTANANARIVO-MIRANANDRO-LION.png"
     },
     {
         "nomClub": "ANTANANARIVO  VALIHA",
@@ -751,7 +740,7 @@
         "Region": "Région 5",
         "Zone": "Zone 51",
         "typeClub": "LION",
-        "clubLogoUrl": "/clubsIcons/POINTE AUX CANONNIERS-LION.jpeg"
+        "clubLogoUrl": "/clubsIcons/POINTE-AUX-CANONNIERS-LION.jpeg"
     },
     {
         "nomClub": "BON ACCUEIL LALLMATIE",
@@ -882,16 +871,6 @@
         "numeroAffiliation": "67190",
         "Region": "Région 3",
         "Zone": "Zone 31",
-        "President": "",
-        "vicePresident": "",
-        "Secretaire": "",
-        "typeClub": "LION"
-    },
-    {
-        "nomClub": "PL DES PALMISTES LE PALMIER",
-        "numeroAffiliation": "127862",
-        "Region": "Région 2",
-        "Zone": "Zone 24",
         "President": "",
         "vicePresident": "",
         "Secretaire": "",
