@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { CLUBS_DATA_URL } from '../constantes/clubsData';
+import { useClubsData, requestClubAssetsRefresh } from '../helpers/useClubsData';
 
 const FileImportDropzone = dynamic(
     () => import('../components/import/FileImportDropzone').then((mod) => mod.FileImportDropzone),
@@ -19,8 +19,7 @@ const FileImportDropzone = dynamic(
 
 export default function ParametrePage() {
     const [toast, setToast] = useState('');
-    const [clubsData, setClubsData] = useState([]);
-    const [clubsLoading, setClubsLoading] = useState(true);
+    const { clubsData, clubsLoading, reloadClubsData } = useClubsData();
     const [isTall, setIsTall] = useState(false);
     const ref = useRef(null);
 
@@ -36,30 +35,6 @@ export default function ParametrePage() {
       
           return () => observer.disconnect();
     }, []);
-
-    const loadClubsData = useCallback(async () => {
-        setClubsLoading(true);
-
-        try {
-            const response = await fetch(CLUBS_DATA_URL, { cache: 'no-store' });
-
-            if (!response.ok) {
-                throw new Error('Impossible de charger les clubs');
-            }
-
-            const clubs = await response.json();
-            setClubsData(Array.isArray(clubs) ? clubs : []);
-        } catch (error) {
-            console.error(error);
-            setClubsData([]);
-        } finally {
-            setClubsLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        loadClubsData();
-    }, [loadClubsData]);
 
     const showToast = (message) => {
         setToast(message);
@@ -108,7 +83,10 @@ export default function ParametrePage() {
                     clubsData={clubsData}
                     clubsLoading={clubsLoading}
                     onImportComplete={async () => {
-                        await loadClubsData();
+                        // Les fichiers du serveur viennent de changer : on purge
+                        // le cache du SW avant de relire clubs.json.
+                        requestClubAssetsRefresh();
+                        await reloadClubsData();
                         showToast('✓ Données importées avec succès');
                     }}
                 />

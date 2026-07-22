@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { initialData } from './constantes/initialData';
-import { CLUBS_DATA_URL } from './constantes/clubsData';
+import { useClubsData } from './helpers/useClubsData';
 import Formulaire from './components/formulaire';
 import { getPreviewCRBlocks, PreviewCRPage , PAGE_HEIGHT, PAGE_WIDTH, PAGE_BOTTOM_SAFE_SPACE} from './components/preview';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -21,9 +21,7 @@ export default function Home() {
     const [apercuValide, setApercuValide] = useState(false);
     const [apercuLoading, setApercuLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
-    const [clubsData, setClubsData] = useState([]);
-    const [clubsLoading, setClubsLoading] = useState(true);
-    const [clubsError, setClubsError] = useState('');
+    const { clubsData, clubsLoading, clubsError } = useClubsData();
     const [downloadModal, setDownloadModal] = useState(null);
 
     const isEmpty = apercuUrls.length === 0;
@@ -36,32 +34,6 @@ export default function Home() {
         setCurrentPage(0);
         }
     }, [apercuUrls.length]);
-
-    const loadClubsData = useCallback(async () => {
-        setClubsLoading(true);
-
-        try {
-            const response = await fetch(CLUBS_DATA_URL, { cache: 'no-store' });
-
-            if (!response.ok) {
-                throw new Error('Impossible de charger les clubs');
-            }
-
-            const clubs = await response.json();
-            setClubsData(Array.isArray(clubs) ? clubs : []);
-            setClubsError('');
-        } catch (error) {
-            console.error(error);
-            setClubsData([]);
-            setClubsError('Impossible de charger la liste des clubs');
-        } finally {
-            setClubsLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        loadClubsData();
-    }, [loadClubsData]);
 
     const currentImage = apercuUrls[currentPage] ?? apercuUrls[0] ?? "";
     const hasMultiple = apercuUrls.length > 1;
