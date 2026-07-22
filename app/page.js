@@ -35,32 +35,6 @@ export default function Home() {
         }
     }, [apercuUrls.length]);
 
-    const loadClubsData = useCallback(async () => {
-        setClubsLoading(true);
-
-        try {
-            const response = await fetch(CLUBS_DATA_URL, { cache: 'no-store' });
-
-            if (!response.ok) {
-                throw new Error('Impossible de charger les clubs');
-            }
-
-            const clubs = await response.json();
-            setClubsData(Array.isArray(clubs) ? clubs : []);
-            setClubsError('');
-        } catch (error) {
-            console.error(error);
-            setClubsData([]);
-            setClubsError('Impossible de charger la liste des clubs');
-        } finally {
-            setClubsLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        loadClubsData();
-    }, [loadClubsData]);
-
     const currentImage = apercuUrls[currentPage] ?? apercuUrls[0] ?? "";
     const hasMultiple = apercuUrls.length > 1;
 

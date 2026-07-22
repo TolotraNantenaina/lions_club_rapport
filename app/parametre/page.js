@@ -36,30 +36,6 @@ export default function ParametrePage() {
           return () => observer.disconnect();
     }, []);
 
-    const loadClubsData = useCallback(async () => {
-        setClubsLoading(true);
-
-        try {
-            const response = await fetch(CLUBS_DATA_URL, { cache: 'no-store' });
-
-            if (!response.ok) {
-                throw new Error('Impossible de charger les clubs');
-            }
-
-            const clubs = await response.json();
-            setClubsData(Array.isArray(clubs) ? clubs : []);
-        } catch (error) {
-            console.error(error);
-            setClubsData([]);
-        } finally {
-            setClubsLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        loadClubsData();
-    }, [loadClubsData]);
-
     const showToast = (message) => {
         setToast(message);
         window.clearTimeout(window.toastTimeout);
