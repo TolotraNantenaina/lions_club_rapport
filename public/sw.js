@@ -69,7 +69,10 @@ self.addEventListener('activate', (event) => {
 
             await Promise.all(
                 cacheNames
-                    .filter((name) => name.startsWith('lcr-'))
+                    // `lions-club-rapport-*` : caches des versions antérieures
+                    // au renommage. Sans ce préfixe ils resteraient sur les
+                    // appareils indéfiniment.
+                    .filter((name) => name.startsWith('lcr-') || name.startsWith('lions-club-rapport-'))
                     .filter((name) => name !== SHELL_CACHE && !PERSISTENT_CACHES.includes(name))
                     .map((name) => caches.delete(name)),
             );

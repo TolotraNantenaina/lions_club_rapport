@@ -16,6 +16,21 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_BUILD_ID: BUILD_ID,
   },
+  async rewrites() {
+    return {
+      // `beforeFiles` : la réécriture prime sur le service statique de Next,
+      // dont la liste de fichiers est figée au démarrage. Sans ça, un logo
+      // uploadé à chaud resterait en 404 jusqu'au redémarrage du conteneur.
+      beforeFiles: [
+        {
+          source: '/clubsIcons/:path*',
+          destination: '/api/club-logo/:path*',
+        },
+      ],
+      afterFiles: [],
+      fallback: [],
+    };
+  },
   async headers() {
     return [
       {
