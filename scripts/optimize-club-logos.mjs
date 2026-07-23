@@ -21,19 +21,15 @@
 import { readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
-import sharp from 'sharp';
-import { LOGO_MAX_EDGE, isOptimizableLogoExtension, optimizeLogoBuffer } from '../lib/optimizeLogo.mjs';
+import {
+    LOGO_MAX_EDGE,
+    isAlreadyOptimized,
+    isOptimizableLogoExtension,
+    optimizeLogoBuffer,
+} from '../lib/optimizeLogo.mjs';
 
 /** En dessous, la réécriture ne vaut pas la perte de qualité ni le churn. */
 const MIN_GAIN_RATIO = 0.05;
-
-/**
- * Un fichier déjà aux bonnes dimensions et déjà léger est laissé tel quel.
- * Sans ce garde-fou, réencoder un JPEG déjà compressé regagne encore 5 à 7 %
- * — mais au prix d'une perte générationnelle qui s'accumulerait à chaque
- * exécution du script.
- */
-const ALREADY_SMALL_BYTES = 150 * 1024;
 
 /**
  * Le script traite des fichiers déjà connus et versionnés, dont un PNG de
@@ -94,22 +90,6 @@ async function collectImages(directory, relativeBase = '') {
     return files;
 }
 
-async function isAlreadyOptimized(buffer, maxEdge) {
-    if (buffer.length > ALREADY_SMALL_BYTES) {
-        return false;
-    }
-
-    const metadata = await sharp(buffer, { limitInputPixels: SCRIPT_MAX_INPUT_PIXELS })
-        .metadata()
-        .catch(() => null);
-
-    if (!metadata || !metadata.width || !metadata.height) {
-        return false;
-    }
-
-    return metadata.width <= maxEdge && metadata.height <= maxEdge;
-}
-
 function formatBytes(bytes) {
     if (bytes >= 1024 * 1024) {
         return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
@@ -143,7 +123,10 @@ async function main() {
         const original = await readFile(image.absolutePath);
         totalBefore += original.length;
 
-        if (await isAlreadyOptimized(original, options.maxEdge)) {
+        if (await isAlreadyOptimized(original, {
+            maxEdge: options.maxEdge,
+            limitInputPixels: SCRIPT_MAX_INPUT_PIXELS,
+        })) {
             totalAfter += original.length;
             skipped += 1;
             console.log(`  =  ${image.relativePath} — déjà optimisé (${formatBytes(original.length)})`);

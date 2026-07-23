@@ -1,5 +1,6 @@
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, rename, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { isAlreadyOptimized, optimizeLogoBuffer } from '../../../../lib/optimizeLogo.mjs';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -11,6 +12,61 @@ const CONTENT_TYPES = {
     jpg: 'image/jpeg',
     jpeg: 'image/jpeg',
 };
+
+/**
+ * Les logos hérités peuvent atteindre 143 Mpx (SAINT BENOIT LES EAUX VIVES).
+ * La limite stricte de la route d'import ne s'applique pas ici : ces fichiers
+ * sont déjà sur le disque, il faut pouvoir les traiter.
+ */
+const SERVE_MAX_INPUT_PIXELS = 400 * 1000 * 1000;
+
+/**
+ * Une optimisation par fichier à la fois. Sans ce verrou, la page d'accueil
+ * qui affiche plusieurs logos déclencherait des réencodages concurrents du
+ * même fichier, avec des écritures qui se marchent dessus.
+ */
+const inFlight = new Map();
+
+function optimizeOnce(absolutePath, extension, original) {
+    const pending = inFlight.get(absolutePath);
+
+    if (pending) {
+        return pending;
+    }
+
+    const task = optimizeInPlace(absolutePath, extension, original).finally(() => {
+        inFlight.delete(absolutePath);
+    });
+
+    inFlight.set(absolutePath, task);
+
+    return task;
+}
+
+/**
+ * Optimise le fichier sur place et renvoie son nouveau contenu, ou null si
+ * l'opération n'apporte rien.
+ *
+ * L'écriture passe par un fichier temporaire renommé ensuite : `rename` est
+ * atomique sur un même système de fichiers, donc une requête concurrente lit
+ * soit l'ancien fichier complet, soit le nouveau — jamais un fichier tronqué.
+ */
+async function optimizeInPlace(absolutePath, extension, original) {
+    const optimized = await optimizeLogoBuffer(original, extension, {
+        limitInputPixels: SERVE_MAX_INPUT_PIXELS,
+    });
+
+    if (optimized.size >= original.length) {
+        return null;
+    }
+
+    const temporaryPath = `${absolutePath}.tmp-${process.pid}`;
+
+    await writeFile(temporaryPath, optimized.buffer);
+    await rename(temporaryPath, absolutePath);
+
+    return optimized.buffer;
+}
 
 function notFound() {
     return new Response('Not found', {
@@ -51,28 +107,57 @@ export async function GET(request, { params }) {
         return notFound();
     }
 
-    const stats = await stat(absolutePath).catch(() => null);
+    let stats = await stat(absolutePath).catch(() => null);
 
     if (!stats || !stats.isFile()) {
         return notFound();
     }
 
-    // Même signature que /api/assets-manifest, pour que revalidation HTTP et
-    // réconciliation du Service Worker s'accordent sur la notion de version.
-    const etag = `"${stats.size}-${Math.round(stats.mtimeMs)}"`;
-    const headers = {
+    // Signature identique à celle de /api/assets-manifest, pour que
+    // revalidation HTTP et réconciliation du Service Worker s'accordent sur
+    // la même notion de version.
+    const buildHeaders = (fileStats) => ({
         'Content-Type': contentType,
         'Cache-Control': 'public, max-age=0, must-revalidate',
-        ETag: etag,
-    };
+        ETag: `"${fileStats.size}-${Math.round(fileStats.mtimeMs)}"`,
+    });
 
-    if (request.headers.get('if-none-match') === etag) {
+    let headers = buildHeaders(stats);
+
+    // Le 304 est traité avant toute optimisation : le client possède déjà le
+    // fichier tel qu'il est sur le disque, inutile de le lire ni de le
+    // décoder. C'est le cas majoritaire, il reste à coût nul.
+    if (request.headers.get('if-none-match') === headers.ETag) {
         return new Response(null, { status: 304, headers });
     }
 
-    const body = await readFile(absolutePath);
+    let body = await readFile(absolutePath);
+
+    // Rattrapage des fichiers arrivés hors du parcours d'import : copie
+    // manuelle dans le volume, restauration de sauvegarde, ou upload
+    // antérieur au redimensionnement automatique.
+    //
+    // Le test porte sur le tampon déjà lu, donc exactement la même règle que
+    // scripts/optimize-club-logos.mjs — un fichier léger mais de très grande
+    // définition est bien rattrapé, ce qu'un simple seuil sur la taille du
+    // fichier laisserait passer.
+    if (!await isAlreadyOptimized(body, { limitInputPixels: SERVE_MAX_INPUT_PIXELS })) {
+        try {
+            const optimized = await optimizeOnce(absolutePath, extension, body);
+
+            if (optimized) {
+                body = optimized;
+                stats = await stat(absolutePath);
+                headers = buildHeaders(stats);
+            }
+        } catch (error) {
+            // Volume en lecture seule, image corrompue, définition hors
+            // limite : on sert l'original plutôt que de renvoyer une erreur.
+            console.warn(`Logo non optimisé : ${segments.join('/')}`, error);
+        }
+    }
 
     return new Response(body, {
-        headers: { ...headers, 'Content-Length': String(stats.size) },
+        headers: { ...headers, 'Content-Length': String(body.length) },
     });
 }
