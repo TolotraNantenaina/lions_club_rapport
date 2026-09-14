@@ -190,9 +190,9 @@ input[type="time"].form-input {
   height: 0;
 }
 
-.tiptap h1 { font-size: 2em; font-weight: 700; margin: 0.67em 0; }
-.tiptap h2 { font-size: 1.5em; font-weight: 600; margin: 0.75em 0; }
-.tiptap h3 { font-size: 1.17em; font-weight: 600; margin: 0.83em 0; }
+.tiptap h1 { font-size: 2em; font-weight: 700; margin: 0.3em 0; }
+.tiptap h2 { font-size: 1.5em; font-weight: 600; margin: 0.3em 0; }
+.tiptap h3 { font-size: 1.17em; font-weight: 600; margin: 0.3em 0; }
 
 .tiptap ul { list-style-type: disc; padding-left: 1.5em; }
 .tiptap ol { list-style-type: decimal; padding-left: 1.5em; }
@@ -200,7 +200,7 @@ input[type="time"].form-input {
 .tiptap table {
   border-collapse: collapse;
   width: 100%;
-  margin: 1.5em auto;
+  margin: 0.5em auto;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   overflow: hidden;
@@ -291,4 +291,59 @@ input[type="time"].form-input {
 .drop-overlay-border {
   stroke-dasharray: 8 8;
   animation: dash-march 0.6s linear infinite;
+}
+
+/* ── TipTap preview "Divers" block (inside PreviewCRPage) ── */
+
+.tiptap-preview-divers h1 { font-size: 1.6em; font-weight: 700; margin: 0.2em 0; }
+.tiptap-preview-divers h2 { font-size: 1.3em; font-weight: 600; margin: 0.2em 0; }
+
+.tiptap-preview-divers ul { list-style-type: disc; padding-left: 1.5em; margin: 0.1em 0; }
+.tiptap-preview-divers ol { list-style-type: decimal; padding-left: 1.5em; margin: 0.1em 0; }
+.tiptap-preview-divers li { margin: 0.05em 0; }
+
+.tiptap-preview-divers table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5em auto;
+  border: 1px solid #d1d5db;
+}
+
+.tiptap-preview-divers th,
+.tiptap-preview-divers td {
+  border: 1px solid #d1d5db;
+  padding: 6px 10px;
+  text-align: left;
+  font-size: 0.85em;
+  line-height: 1.4;
+}
+
+.tiptap-preview-divers th {
+  background: #f3f4f6;
+  font-weight: 600;
+  color: #374151;
+}
+
+.tiptap-preview-divers td {
+  color: #1f2937;
+}
+
+.tiptap-preview-divers blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 0.5em;
+  margin: 0.1em 0;
+  color: var(--dark-grey);
+  font-style: italic;
+}
+
+.tiptap-preview-divers img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* ── Divers editor dynamic height ─────────────────────── */
+
+.tiptap-divers {
+  min-height: 1250px;
 }
