@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import Link from 'next/link';
 import html2canvas from 'html2canvas';
 
 import { useClubsData } from '../helpers/useClubsData';
-import { useEditorStorage } from '../components/editor/useEditorStorage';
+import { useEditeurNotes } from './useEditeurNotes';
+import Sidebar from './Sidebar';
 import { EditorHeader } from '../components/editor/EditorHeader';
 import { TipTapEditor } from '../components/editor/TipTapEditor';
 import { base64ToBlob } from '../helpers/bas64ToBlob';
@@ -19,16 +19,17 @@ const A4_HEIGHT = 1740;
 
 export default function EditeurPage() {
   const { clubsData, clubsLoading, clubsError } = useClubsData();
-  const { savedContent, savedClub, load, save } = useEditorStorage();
+  const { notes, activeNote, activeNoteId, initialized, createNote, deleteNote, updateNote, selectNote } = useEditeurNotes();
 
   const [selectedClub, setSelectedClub] = useState(null);
   const [clubType, setClubType] = useState(CLUB_TYPE.LION);
-  const [clubSearch, setClubSearch] = useState(savedClub?.nomClub || '');
+  const [clubSearch, setClubSearch] = useState('');
   const [isClubDropdownOpen, setIsClubDropdownOpen] = useState(false);
   const clubSearchInputRef = useRef(null);
 
   const [toast, setToast] = useState('');
   const [downloadModal, setDownloadModal] = useState(null);
+  const [toolbarHidden, setToolbarHidden] = useState(false);
   const editorRef = useRef(null);
   const scaleContainerRef = useRef(null);
   const captureRef = useRef(null);
@@ -58,13 +59,14 @@ export default function EditeurPage() {
   );
 
   useEffect(() => {
-    const saved = load();
-    if (saved.club) {
-      setSelectedClub(saved.club);
-      setClubSearch(saved.club.nomClub || '');
-      setClubType(normalizeClubType(saved.club.typeClub) === CLUB_TYPE.LEO ? CLUB_TYPE.LEO : CLUB_TYPE.LION);
+    if (activeNote) {
+      setSelectedClub(activeNote.club || null);
+      setClubSearch(activeNote.club?.nomClub || '');
+      if (activeNote.club?.typeClub) {
+        setClubType(normalizeClubType(activeNote.club.typeClub) === CLUB_TYPE.LEO ? CLUB_TYPE.LEO : CLUB_TYPE.LION);
+      }
     }
-  }, [load]);
+  }, [activeNote]);
 
   const handleClubTypeChange = useCallback((type, event) => {
     event.preventDefault();
@@ -83,10 +85,11 @@ export default function EditeurPage() {
     );
     if (club) {
       setSelectedClub(club);
-      const html = editorRef.current?.getHTML() || '';
-      save(html, club);
+      if (activeNoteId) {
+        updateNote(activeNoteId, { club });
+      }
     }
-  }, [clubsData, clubType, save]);
+  }, [clubsData, clubType, activeNoteId, updateNote]);
 
   const showToast = useCallback((message) => {
     setToast(message);
@@ -94,9 +97,15 @@ export default function EditeurPage() {
     window.toastTimeout = window.setTimeout(() => setToast(''), 3500);
   }, []);
 
+  const renameNote = useCallback((id, newTitle) => {
+    updateNote(id, { title: newTitle });
+  }, [updateNote]);
+
   const handleEditorUpdate = useCallback((html) => {
-    save(html, selectedClub);
-  }, [save, selectedClub]);
+    if (activeNoteId) {
+      updateNote(activeNoteId, { html });
+    }
+  }, [activeNoteId, updateNote]);
 
   /* ── Multi-page JPG export ────────────────────────────── */
   const exportJpg = useCallback(async () => {
@@ -196,6 +205,16 @@ export default function EditeurPage() {
 
   return (
     <main className="min-h-screen bg-transparent">
+      {/* ── Sidebar ──────────────────────────────────────── */}
+      <Sidebar
+        notes={notes}
+        activeNoteId={activeNoteId}
+        onSelect={selectNote}
+        onCreate={createNote}
+        onDelete={deleteNote}
+        onRename={renameNote}
+      />
+
       {/* ── Global header ───────────────────────────────── */}
       <div className="text-slate-900 pt-8 bg-transparent">
         <header className="relative mb-7 mx-auto w-full min-[1200px]:max-w-[990px]">
@@ -206,11 +225,6 @@ export default function EditeurPage() {
             </div>
             <p className="text-[1.1em] text-white">Éditeur de Rapport</p>
           </div>
-          <Link href="/" className="absolute left-0 top-1/4 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-white transition hover:text-white/80" aria-label="Retour à l'accueil">
-            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-            </svg>
-          </Link>
         </header>
       </div>
 
@@ -279,11 +293,11 @@ export default function EditeurPage() {
               id="rapport-capture"
               className="bg-white text-black border border-gray-200/50 shadow-[0_20px_50px_rgba(0,0,0,0.3)] select-none"
             >
-              <EditorToolbar editorRef={editorRef} showToast={showToast} />
+              <EditorToolbar editorRef={editorRef} showToast={showToast} hidden={toolbarHidden} onToggleHide={() => setToolbarHidden((v) => !v)} />
               <EditorHeader clubType={clubType} selectedClub={selectedClub} />
               <TipTapEditor
                 editorRef={editorRef}
-                content={savedContent}
+                content={activeNote?.html || ''}
                 onUpdate={handleEditorUpdate}
                 showToast={showToast}
               />

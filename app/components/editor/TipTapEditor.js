@@ -69,6 +69,17 @@ export function TipTapEditor({ editorRef, content, onUpdate, showToast }) {
     if (editorRef) editorRef.current = editor;
   }, [editor, editorRef]);
 
+  // Sync editor content when switching notes (external content change)
+  const prevContentRef = useRef(content);
+  useEffect(() => {
+    if (!editor) return;
+    // Only update if content changed externally (not from user typing)
+    if (content !== prevContentRef.current && content !== editor.getHTML()) {
+      editor.commands.setContent(content || '', false);
+    }
+    prevContentRef.current = content;
+  }, [content, editor]);
+
   // Show floating bar on text selection
   useEffect(() => {
     if (!editor) return;
