@@ -833,7 +833,8 @@
         "Secretaire": "De Robillard Dominique Francine",
         "Region": "Région 5",
         "Zone": "Zone 53",
-        "typeClub": "LION"
+        "typeClub": "LION",
+        "clubLogoUrl": "/clubsIcons/MAHEBOURG-LION.png"
     },
     {
         "nomClub": "QUATRE BORNES",
@@ -1235,6 +1236,7 @@
         "typeClub": "LION",
         "President": "Batterie Steve",
         "vicePresident": "Ah Yu Tony",
-        "Secretaire": "Mecklenburgh Ursula"
+        "Secretaire": "Mecklenburgh Ursula",
+        "clubLogoUrl": "/clubsIcons/ALBION LE PHARE-LION.jpg"
     }
 ]

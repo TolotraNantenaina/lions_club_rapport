@@ -13,6 +13,16 @@ const NO_CACHE = {
 
 const nextConfig = {
   reactStrictMode: true,
+  // pdfjs-dist is large and only loaded on-demand via dynamic import
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'pdfjs-dist': require.resolve('pdfjs-dist'),
+      };
+    }
+    return config;
+  },
   env: {
     NEXT_PUBLIC_BUILD_ID: BUILD_ID,
   },

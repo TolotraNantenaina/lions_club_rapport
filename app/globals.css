@@ -175,3 +175,120 @@ input[type="time"].form-input {
 .text-accent {
     color: var(--accent);
 }
+
+/* ── TipTap Editor ─────────────────────────────────────── */
+
+.tiptap {
+  outline: none;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--dark-grey);
+  pointer-events: none;
+  height: 0;
+}
+
+.tiptap h1 { font-size: 2em; font-weight: 700; margin: 0.67em 0; }
+.tiptap h2 { font-size: 1.5em; font-weight: 600; margin: 0.75em 0; }
+.tiptap h3 { font-size: 1.17em; font-weight: 600; margin: 0.83em 0; }
+
+.tiptap ul { list-style-type: disc; padding-left: 1.5em; }
+.tiptap ol { list-style-type: decimal; padding-left: 1.5em; }
+
+.tiptap table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.5em auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.tiptap th,
+.tiptap td {
+  border: 1px solid #e5e7eb;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
+.tiptap th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.tiptap td {
+  color: #1f2937;
+}
+
+.tiptap .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(44, 90, 160, 0.12);
+  pointer-events: none;
+}
+
+.tiptap .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #2c5aa0;
+  cursor: col-resize;
+}
+
+.tiptap resize-cursor {
+  cursor: col-resize;
+}
+
+.tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.tiptap blockquote {
+  border-left: 4px solid var(--accent);
+  padding-left: 1em;
+  margin-left: 0;
+  color: var(--dark-grey);
+  font-style: italic;
+}
+
+/* ── Capture zone ──────────────────────────────────────── */
+
+#rapport-capture {
+  width: 1240px;
+  min-height: 1740px;
+  overflow: hidden;
+  background: white;
+  position: relative;
+}
+
+/* ── Context menu ──────────────────────────────────────── */
+
+@keyframes contextMenuIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.animate-context-menu {
+  animation: contextMenuIn 0.12s ease-out;
+}
+
+/* ── Drop overlay dashed border ────────────────────────── */
+
+@keyframes dash-march {
+  to { stroke-dashoffset: -16; }
+}
+
+.drop-overlay-border {
+  stroke-dasharray: 8 8;
+  animation: dash-march 0.6s linear infinite;
+}

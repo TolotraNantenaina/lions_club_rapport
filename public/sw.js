@@ -19,7 +19,7 @@ const STATIC_CACHE = 'lcr-static'; // /_next/static/** (noms hashés, immuables)
 const DATA_CACHE = 'lcr-data'; // clubs.json + état du manifeste
 const LOGOS_CACHE = 'lcr-logos'; // /clubsIcons/**
 
-const PERSISTENT_CACHES = [STATIC_CACHE, DATA_CACHE, LOGOS_CACHE];
+const PERSISTENT_CACHES = new Set([STATIC_CACHE, DATA_CACHE, LOGOS_CACHE]);
 
 const CLUBS_URL = '/data/clubs.json';
 const MANIFEST_URL = '/api/assets-manifest';
@@ -73,7 +73,7 @@ self.addEventListener('activate', (event) => {
                     // au renommage. Sans ce préfixe ils resteraient sur les
                     // appareils indéfiniment.
                     .filter((name) => name.startsWith('lcr-') || name.startsWith('lions-club-rapport-'))
-                    .filter((name) => name !== SHELL_CACHE && !PERSISTENT_CACHES.includes(name))
+                    .filter((name) => name !== SHELL_CACHE && !PERSISTENT_CACHES.has(name))
                     .map((name) => caches.delete(name)),
             );
 
@@ -86,8 +86,11 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-self.addEventListener('message', (event) => {
-    const type = event.data && event.data.type;
+self.addEventListener('message', function (event) {
+    if (event.origin === "")
+        return;
+
+    const type = event.data?.type;
 
     if (type === 'SKIP_WAITING') {
         self.skipWaiting();
@@ -165,7 +168,7 @@ async function navigationStrategy(request) {
     try {
         const response = await withTimeout(fetch(request), NAVIGATION_TIMEOUT_MS);
 
-        if (response && response.ok) {
+        if (response?.ok) {
             await cache.put(request, response.clone());
         }
 
@@ -251,7 +254,7 @@ async function handleLogo(request) {
 /* ------------------------------------------------------------------ */
 
 function scheduleSync(options) {
-    const force = Boolean(options && options.force);
+    const force = Boolean(options?.force);
 
     if (!force && Date.now() - lastSyncAt < SYNC_MIN_INTERVAL_MS) {
         return;
@@ -261,7 +264,7 @@ function scheduleSync(options) {
 }
 
 async function syncClubAssets(options) {
-    const force = Boolean(options && options.force);
+    const force = Boolean(options?.force);
 
     // Une seule synchronisation à la fois : sinon chaque image de la page
     // déclencherait sa propre réconciliation.
@@ -300,7 +303,7 @@ async function runSync(force) {
 
     const logosChanged = await reconcileLogos(
         manifest.logos || {},
-        (previous && previous.logos) || {},
+        (previous?.logos) || {},
         force,
     );
 
@@ -323,6 +326,7 @@ async function fetchManifest() {
 
         return response.ok ? await response.json() : null;
     } catch (error) {
+        console.error(error);
         return null;
     }
 }
@@ -411,7 +415,7 @@ function logoCacheKey(pathOrUrl) {
 }
 
 function isConstrainedNetwork() {
-    const connection = self.navigator && self.navigator.connection;
+    const connection = self.navigator?.connection;
 
     if (!connection) {
         return false;
