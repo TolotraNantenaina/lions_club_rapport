@@ -239,7 +239,7 @@ export default function CrVersion1Page() {
       {/* ═══ Footer ══════════════════════════════════════════ */}
       <footer className="fixed bottom-2 right-6 z-40 opacity-70 pointer-events-none select-none text-center">
         <span className="text-xs text-slate-500 font-mono">
-          v{require('../../package.json').version} - cr-v1-tiptap
+          v{require('../../package.json').version_1} - cr-v1-tiptap
         </span>
       </footer>
     </main>

@@ -252,7 +252,7 @@ export default function EditeurPage() {
       {/* ── Footer ──────────────────────────────────────── */}
       <footer className="fixed bottom-2 right-6 z-40 opacity-70 pointer-events-none select-none text-center">
         <span className="text-xs text-slate-500 font-mono">
-          v{require('../../package.json').version} - éditeur
+          v{require('../../package.json').version_editor} - éditeur
         </span>
       </footer>
     </main>
