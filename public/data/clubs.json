@@ -14,7 +14,7 @@
         "President": "Wai Song Ming Tidjy",
         "vicePresident": "TSAN Adriano",
         "Secretaire": "Andrianarisoa Razafimandimby Herimanitriniaina",
-        "Region": "Region 1",
+        "Region": "Région 1",
         "Zone": "Zone 11",
         "typeClub": "LION"
     },
@@ -125,7 +125,8 @@
         "Secretaire": "RANDRIANJARA Sarah",
         "Region": "Région 1",
         "Zone": "Zone 13",
-        "typeClub": "LION"
+        "typeClub": "LION",
+        "clubLogoUrl": "/clubsIcons/ANTANANARIVO SALANITRA-LION.png"
     },
     {
         "nomClub": "TSIROANOMANDIDY",
@@ -153,7 +154,7 @@
         "numeroAffiliation": "27016",
         "President": "HERVE Patrick",
         "vicePresident": "",
-        "Secretaire": "Welmant Gina",
+        "Secretaire": "WELMANT Gina",
         "clubLogoUrl": "/clubsIcons/SAINT DENIS FRANCE AUSTRALE DO.jpg",
         "Region": "Région 2",
         "Zone": "Zone 21",
@@ -288,8 +289,8 @@
     {
         "nomClub": "REUNION SAINT-GILLES",
         "numeroAffiliation": "38773",
-        "President": "Allombert Pierrick",
-        "vicePresident": "",
+        "President": "ALLOMBERT Pierrick",
+        "vicePresident": "KERBIDI-ALLOMBERT Morgane",
         "Secretaire": "KERBIDI-ALLOMBERT Morgane",
         "clubLogoUrl": "/clubsIcons/REUNION SAINT-GILLES.jpg",
         "Region": "Région 2",
@@ -301,7 +302,7 @@
         "numeroAffiliation": "151014",
         "President": "Nasri Messaouda",
         "vicePresident": "Termeau Erwan",
-        "Secretaire": "MARSAC JULIE",
+        "Secretaire": "Marsac Julie",
         "Region": "Région 2",
         "Zone": "Zone 23",
         "typeClub": "LION"
@@ -405,7 +406,7 @@
         "nomClub": "ANTANANARIVO TSARA TANANA",
         "numeroAffiliation": "104812",
         "President": "ANDRIANANANTANY Ony Soanavalona",
-        "vicePresident": "",
+        "vicePresident": "RATOVOSON Saholy Nirinasoa",
         "Secretaire": "RAKOTOARISON Yves Etienne",
         "Region": "Région 3",
         "Zone": "Zone 31",
@@ -424,8 +425,8 @@
     {
         "nomClub": "AMBOHIBAO-LAKA",
         "numeroAffiliation": "119127",
-        "President": "RANDRIANARISOA Hajanirina",
-        "vicePresident": "",
+        "President": "RANDRIANARISOA Hajanirina Princy",
+        "vicePresident": "RANDRIANARISOA Hajanirina Princy",
         "Secretaire": "RAZAFINDRATRIMO Maholy",
         "clubLogoUrl": "/clubsIcons/AMBOHIBAO-LAKA.png",
         "Region": "Région 3",
@@ -446,7 +447,7 @@
         "nomClub": "ANTANANARIVO VOHITSARA",
         "numeroAffiliation": "43582",
         "President": "MANASSE-RATSIMANDRESY Sandifera Andriampenosoa",
-        "vicePresident": "",
+        "vicePresident": "RAKOTOMALALA Haga",
         "Secretaire": "BAKOARIVELO Njarasoa",
         "Region": "Région 3",
         "Zone": "Zone 32",
@@ -465,7 +466,7 @@
     {
         "nomClub": "AMBATONDRAZAKA LAC ALAOTRA",
         "numeroAffiliation": "47393",
-        "President": "RANDRIAMIARANA Jean Yves",
+        "President": "RANDRIAMIARANA Jean Yves René",
         "vicePresident": "RANDRIANARIVONY Mitsimbiniaina",
         "Secretaire": "RANDRIANARIVONY Mitsimbiniaina",
         "Region": "Région 3",
@@ -485,9 +486,9 @@
     {
         "nomClub": " ANTANANARIVO FARIMBONA",
         "numeroAffiliation": "124452",
-        "President": "ROJO Andriantseheno",
+        "President": "ANDRIANTSEHENO Rojo",
         "vicePresident": "RANDRIAMAHEFA Haga",
-        "Secretaire": "RAKOTOMAMONJY Michel Hary",
+        "Secretaire": "RAKOTOMAMONJY Michel Harry",
         "Region": "Région 3",
         "Zone": "Zone 33",
         "typeClub": "LION"
@@ -496,7 +497,7 @@
         "nomClub": "ANTANANARIVO ILOHASINA",
         "numeroAffiliation": "100586",
         "President": "RAKOTOARIVELO Michaela",
-        "vicePresident": "",
+        "vicePresident": "RAZAFIMANANTSOA  Amintsoa",
         "Secretaire": "RANDRIANALIJAONA Hanitriniony",
         "clubLogoUrl": "/clubsIcons/ANTANANARIVO ILOHASINA.png",
         "Region": "Région 3",
@@ -538,8 +539,8 @@
         "nomClub": "AMBOHIMANGA",
         "numeroAffiliation": "116807",
         "President": "RAKOTOMAROLAFY Dina",
-        "vicePresident": "",
-        "Secretaire": "RAKOTOSOA Marie",
+        "vicePresident": "RAKOTOSOA Marie Renée",
+        "Secretaire": "RAKOTOSOA Marie Renée",
         "clubLogoUrl": "/clubsIcons/AMBOHIMANGA.jpeg",
         "Region": "Région 3",
         "Zone": "Zone 34",
@@ -570,7 +571,7 @@
     {
         "nomClub": "ANTANANARIVO  VALIHA",
         "numeroAffiliation": "180000",
-        "President": "HARINIVO Manoa Tafitasoa Andry Fiononana",
+        "President": "ANDRY F. H. Tafitasoa Manoa",
         "vicePresident": "ANDRIAMBOAVONJY Angela Stéphanie",
         "Secretaire": "ANDRIAMBOAVONJY Angela Stéphanie",
         "Region": "Région 3",
@@ -603,10 +604,11 @@
         "numeroAffiliation": "27008",
         "President": "GRANIER Olivier",
         "vicePresident": "RANDRIANANDRASANA Joël",
-        "Secretaire": "FREDERICON Erica Farinnah Hess",
+        "Secretaire": "FREDERIÇON Farinnah Hess Erica",
         "Region": "Région 4",
         "Zone": "Zone 41",
-        "typeClub": "LION"
+        "typeClub": "LION",
+        "clubLogoUrl": "/clubsIcons/DIEGO SUAREZ-LION.jpeg"
     },
     {
         "nomClub": "NOSSI BE",
@@ -645,7 +647,7 @@
         "numeroAffiliation": "45640",
         "President": "INGY Nadia",
         "vicePresident": "ANDREAS Christophe Michel",
-        "Secretaire": "CMJ Voahangy Harinelina Rakotomandimby",
+        "Secretaire": "RAKOTOMANDIMBY VOAHANGY Harinelina Nalisoa",
         "Region": "Région 4",
         "Zone": "Zone 42",
         "typeClub": "LION"
@@ -664,8 +666,8 @@
         "nomClub": "VOHEMAR",
         "numeroAffiliation": "116076",
         "President": "LAYRELOUP Jean Michel Layreloup",
-        "vicePresident": "ELODIE BEANJARA GAEL",
-        "Secretaire": "LYDIE TSIMISOMA",
+        "vicePresident": "BEANJARA GAEL",
+        "Secretaire": "TSIMISOMA LYDIE",
         "Region": "Région 4",
         "Zone": "Zone 42",
         "typeClub": "LION"
@@ -674,10 +676,10 @@
         "nomClub": "AMBILOBE",
         "numeroAffiliation": "182295",
         "President": "TOMBOMORA Chancelin Anjaravelo",
-        "vicePresident": "",
-        "Secretaire": "ANICIA Ravolahy Elisa",
+        "vicePresident": "ISSOUFALY Moïse",
+        "Secretaire": "RAVOLAHY  Elisa Anicia",
         "Region": "Région 4",
-        "Zone": "Zone 41",
+        "Zone": "Zone 42",
         "typeClub": "LION"
     },
     {
@@ -704,7 +706,7 @@
         "nomClub": "PORT LOUIS DOYEN",
         "numeroAffiliation": "26984",
         "President": "Ghoora Kishan",
-        "vicePresident": "",
+        "vicePresident": "Juwaheer Amal",
         "Secretaire": "Sreepaul Leckrajsing",
         "Region": "Région 5",
         "Zone": "Zone 51",
@@ -714,8 +716,8 @@
         "nomClub": "RODRIGUES",
         "numeroAffiliation": "62658",
         "President": "SPEVILLE Jean Christophe",
-        "vicePresident": "CESAR Ghislain",
-        "Secretaire": "GENAVE Anna",
+        "vicePresident": "CESAR Ghislain Dimitri",
+        "Secretaire": "GENAVE Anna Maria Christina",
         "clubLogoUrl": "/clubsIcons/RODRIGUES.png",
         "Region": "Région 5",
         "Zone": "Zone 51",
@@ -756,7 +758,7 @@
         "nomClub": "CUREPIPE",
         "numeroAffiliation": "37503",
         "President": "Gunness Shalonee",
-        "vicePresident": "",
+        "vicePresident": "Mungur Shweta",
         "Secretaire": "Jadoo Kashish",
         "clubLogoUrl": "/clubsIcons/CUREPIPE.png",
         "Region": "Région 5",
@@ -778,8 +780,8 @@
         "nomClub": "FLACQ",
         "numeroAffiliation": "120212",
         "President": "Bissoondoyal Sanjay",
-        "vicePresident": "",
-        "Secretaire": "Sahebally Bibi Ziya Fatima",
+        "vicePresident": "Channoo Ganeshree",
+        "Secretaire": "Sahebally Bibi Ziya Fatimah",
         "Region": "Région 5",
         "Zone": "Zone 52",
         "typeClub": "LION"
@@ -795,9 +797,9 @@
     {
         "nomClub": "BEAU BASSIN/ROSE HILL",
         "numeroAffiliation": "121538",
-        "President": "",
+        "President": "Parsooramen Cristelle",
         "vicePresident": "",
-        "Secretaire": "",
+        "Secretaire": "Vacher Franco",
         "clubLogoUrl": "/clubsIcons/BEAU BASSIN/ROSE HILL.png",
         "Region": "Région 5",
         "Zone": "Zone 53",
@@ -819,7 +821,7 @@
         "numeroAffiliation": "157529",
         "President": "Joory Vandana",
         "vicePresident": "Futloo Fardeen",
-        "Secretaire": "Cotte Stephanie",
+        "Secretaire": "Cotte Stéphanie",
         "clubLogoUrl": "/clubsIcons/FLOREAL VACOAS.png",
         "Region": "Région 5",
         "Zone": "Zone 53",
@@ -833,14 +835,13 @@
         "Secretaire": "De Robillard Dominique Francine",
         "Region": "Région 5",
         "Zone": "Zone 53",
-        "typeClub": "LION",
-        "clubLogoUrl": "/clubsIcons/MAHEBOURG-LION.png"
+        "typeClub": "LION"
     },
     {
         "nomClub": "QUATRE BORNES",
         "numeroAffiliation": "43063",
         "President": "Thomas Marie Elizabeth Jocelyne Dominique",
-        "vicePresident": "",
+        "vicePresident": "Hannelas Patricia",
         "Secretaire": "Lochoo Giovanni",
         "Region": "Région 5",
         "Zone": "Zone 53",
@@ -849,7 +850,7 @@
     {
         "nomClub": "RIVIERE NOIRE",
         "numeroAffiliation": "102615",
-        "President": "Valayden Nandini",
+        "President": "Valayden Gangalaramsamy Nandini",
         "vicePresident": "Holim Doris",
         "Secretaire": "Babet Claudia",
         "clubLogoUrl": "/clubsIcons/RIVIERE NOIRE.jpg",
@@ -860,8 +861,8 @@
     {
         "nomClub": "SAVANNE",
         "numeroAffiliation": "121483",
-        "President": "De Cazanove Marie Desiree",
-        "vicePresident": "Moutia Marica Elodie",
+        "President": "De Cazanove Marie Desiree Beatrice Catherine",
+        "vicePresident": "Moutia Marica Elodie Catherine",
         "Secretaire": "Alighan Bibi Noor-E-Naushin",
         "Region": "Région 5",
         "Zone": "Zone 53",
@@ -1222,14 +1223,18 @@
         "typeClub": "LION",
         "President": "RAHAGA Hery Lalaina Micke",
         "vicePresident": "",
-        "Secretaire": "RAZAFIMANDIMBY Diamondra Harimalala"
+        "Secretaire": "RAZAFIMANDIMBY Diamondra Harimalala",
+        "Region": "Région 3",
+        "Zone": "Zone 33"
     },
     {
         "nomClub": "COMORES MASSIWA",
         "typeClub": "LION",
-        "President": "",
-        "vicePresident": "",
-        "Secretaire": ""
+        "President": "MOUMINI Soilihi",
+        "vicePresident": "MZE SAID Zalhata",
+        "Secretaire": "ABRATI Abdallah",
+        "Region": "Région 4",
+        "Zone": "Zone 41"
     },
     {
         "nomClub": "ALBION LE PHARE",
@@ -1237,6 +1242,16 @@
         "President": "Batterie Steve",
         "vicePresident": "Ah Yu Tony",
         "Secretaire": "Mecklenburgh Ursula",
-        "clubLogoUrl": "/clubsIcons/ALBION LE PHARE-LION.jpg"
+        "Region": "Région 5",
+        "Zone": "Zone 51"
+    },
+    {
+        "nomClub": "ANTANANARIVO SANTATRA NC",
+        "typeClub": "LION",
+        "President": "RAMAHAROSON Hoby Heriniaina",
+        "vicePresident": "MAMITIANA Francia Léonce",
+        "Secretaire": "RADY Soahary Noronantenaina",
+        "Region": "Région 3",
+        "Zone": "Zone 31"
     }
 ]
