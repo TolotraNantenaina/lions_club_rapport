@@ -1,21 +1,16 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import html2canvas from 'html2canvas';
 
 import { useClubsData } from '../helpers/useClubsData';
 import { useEditeurNotes } from './useEditeurNotes';
 import Sidebar from './Sidebar';
 import { EditorHeader } from '../components/editor/EditorHeader';
 import { TipTapEditor } from '../components/editor/TipTapEditor';
-import { base64ToBlob } from '../helpers/bas64ToBlob';
-import { prepareHtml2CanvasClone } from '../helpers/html2canvasUtils';
 import { JpgDownloadModal } from '../components/JpgDownloadModal';
 import { EditorToolbar } from '../components/editor/EditorToolbar';
 import { CLUB_TYPE, filterClubsByTypeAndQuery, normalizeClubType } from '../../lib/clubSearchFilter';
-
-const CAPTURE_WIDTH = 1240;
-const A4_HEIGHT = 1740;
+import { exportMultiPageJpg, downloadSingleJpg } from './exportUtils';
 
 export default function EditeurPage() {
   const { clubsData, clubsLoading, clubsError } = useClubsData();
@@ -42,7 +37,7 @@ export default function EditeurPage() {
 
     const updateZoom = () => {
       const available = container.clientWidth;
-      const ratio = available / CAPTURE_WIDTH;
+      const ratio = available / 1240;
       const z = Math.min(1, Math.max(0.4, ratio));
       capture.style.zoom = z;
     };
@@ -107,100 +102,30 @@ export default function EditeurPage() {
     }
   }, [activeNoteId, updateNote]);
 
-  /* ── Multi-page JPG export ────────────────────────────── */
+  /* ── Multi-page JPG export (Node Distribution Loop) ──── */
   const exportJpg = useCallback(async () => {
-    const captureZone = document.getElementById('rapport-capture');
-    if (!captureZone) return;
+    const editor = editorRef.current;
+    if (!editor) return;
 
-    // Reset zoom for accurate capture
-    const prevZoom = captureZone.style.zoom;
-    captureZone.style.zoom = '1';
-
-    const club = selectedClub?.nomClub || 'rapport';
-    const type = selectedClub?.typeClub ? `_${selectedClub.typeClub}` : '';
-    const baseName = `Rapport_${club}${type}`;
-
-    setDownloadModal({ baseName, images: [], isLoading: true });
+    const html = editor.getHTML();
+    setDownloadModal({ baseName: '', images: [], isLoading: true });
 
     try {
-      await document.fonts.ready;
-
-      const totalHeight = captureZone.scrollHeight || captureZone.offsetHeight;
-      const totalPages = Math.max(1, Math.ceil(totalHeight / A4_HEIGHT));
-
-      const images = [];
-
-      for (let page = 0; page < totalPages; page++) {
-        const y = page * A4_HEIGHT;
-        const h = Math.min(A4_HEIGHT, totalHeight - y);
-
-        // Anti-cut: find elements that cross the boundary and push them
-        if (page < totalPages - 1) {
-          const boundary = (page + 1) * A4_HEIGHT;
-          applyAntiCutStyles(captureZone, boundary);
-        }
-
-        const canvas = await html2canvas(captureZone, {
-          scale: 2,
-          backgroundColor: '#ffffff',
-          useCORS: true,
-          allowTaint: true,
-          width: CAPTURE_WIDTH,
-          height: totalHeight,
-          windowWidth: CAPTURE_WIDTH,
-          windowHeight: totalHeight,
-          x: 0,
-          y: y,
-          logging: false,
-          letterRendering: true,
-          onclone: (clonedDocument, clonedElement) => {
-            const el = clonedElement.firstElementChild || clonedElement;
-            prepareHtml2CanvasClone(captureZone, clonedDocument, el);
-
-            // Force white background on cloned capture
-            const clonedCapture = clonedDocument.getElementById('rapport-capture');
-            if (clonedCapture) {
-              clonedCapture.style.background = '#ffffff';
-              clonedCapture.style.minHeight = 'auto';
-              clonedCapture.style.height = `${totalHeight}px`;
-              clonedCapture.style.overflow = 'visible';
-
-              // Apply anti-cut styles on clone
-              if (page < totalPages - 1) {
-                const boundary = (page + 1) * A4_HEIGHT;
-                applyAntiCutStylesOnClone(clonedCapture, boundary, y);
-              }
-            }
-          },
-        });
-
-        // Clean up anti-cut styles
-        if (page < totalPages - 1) {
-          removeAntiCutStyles(captureZone);
-        }
-
-        const imageUrl = canvas.toDataURL('image/jpeg', 0.95);
-        images.push(imageUrl);
+      const result = await exportMultiPageJpg(html, selectedClub, showToast);
+      if (result.images.length === 0) {
+        setDownloadModal(null);
+        return;
       }
-
-      setDownloadModal({ baseName, images, isLoading: false });
+      setDownloadModal({ baseName: result.baseName, images: result.images, isLoading: false });
     } catch (err) {
       console.error(err);
       showToast('Erreur lors de la génération du JPG');
       setDownloadModal(null);
-    } finally {
-      captureZone.style.zoom = prevZoom;
     }
   }, [selectedClub, showToast]);
 
-  const downloadSingleJpg = useCallback((imageUrl, fileName) => {
-    const blob = base64ToBlob(imageUrl, 'image/jpeg');
-    const link = document.createElement('a');
-    const objectUrl = URL.createObjectURL(blob);
-    link.href = objectUrl;
-    link.download = fileName;
-    link.click();
-    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  const handleDownloadSingleJpg = useCallback((imageUrl, fileName) => {
+    downloadSingleJpg(imageUrl, fileName);
   }, []);
 
   return (
@@ -320,7 +245,7 @@ export default function EditeurPage() {
           images={downloadModal.images}
           isLoading={downloadModal.isLoading}
           onClose={() => setDownloadModal(null)}
-          onDownloadPage={downloadSingleJpg}
+          onDownloadPage={handleDownloadSingleJpg}
         />
       )}
 
@@ -332,81 +257,4 @@ export default function EditeurPage() {
       </footer>
     </main>
   );
-}
-
-/* ── Anti-cut helpers ───────────────────────────────────── */
-const ANTI_CUT_ATTR = 'data-anti-cut';
-
-/**
- * Scan block-level elements and table rows. If an element crosses
- * the page boundary, push it to the next page via break-before.
- * For <tr>: if the row straddles the boundary, push the entire row.
- */
-function applyAntiCutStyles(container, boundary) {
-  // First handle <tr> specifically — they must not be split
-  const rows = container.querySelectorAll('tr');
-  rows.forEach((tr) => {
-    const rect = tr.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-    const elTop = rect.top - containerRect.top;
-    const elBottom = elTop + rect.height;
-
-    if (elTop < boundary && elBottom > boundary + 5) {
-      tr.setAttribute(ANTI_CUT_ATTR, 'true');
-      tr.style.breakBefore = 'page';
-    }
-  });
-
-  // Then handle other block elements
-  const blocks = container.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote, img');
-  blocks.forEach((el) => {
-    // Skip if inside a table (handled above)
-    if (el.closest('table')) return;
-
-    const rect = el.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-    const elTop = rect.top - containerRect.top;
-    const elBottom = elTop + rect.height;
-
-    if (elTop < boundary && elBottom > boundary + 5) {
-      el.setAttribute(ANTI_CUT_ATTR, 'true');
-      el.style.breakBefore = 'page';
-    }
-  });
-}
-
-function applyAntiCutStylesOnClone(clone, boundary, offset) {
-  const rows = clone.querySelectorAll('tr');
-  rows.forEach((tr) => {
-    const elTop = tr.offsetTop;
-    const elBottom = elTop + tr.offsetHeight;
-    const relBoundary = boundary - offset;
-
-    if (elTop < relBoundary && elBottom > relBoundary + 5) {
-      // Force the row to render fully on next page
-      tr.style.breakBefore = 'page';
-      tr.style.pageBreakBefore = 'always';
-    }
-  });
-
-  const blocks = clone.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote, img');
-  blocks.forEach((el) => {
-    if (el.closest('table')) return;
-    const elTop = el.offsetTop;
-    const elBottom = elTop + el.offsetHeight;
-    const relBoundary = boundary - offset;
-
-    if (elTop < relBoundary && elBottom > relBoundary + 5) {
-      el.style.breakBefore = 'page';
-      el.style.pageBreakBefore = 'always';
-    }
-  });
-}
-
-function removeAntiCutStyles(container) {
-  container.querySelectorAll(`[${ANTI_CUT_ATTR}]`).forEach((el) => {
-    el.removeAttribute(ANTI_CUT_ATTR);
-    el.style.breakBefore = '';
-    el.style.pageBreakBefore = '';
-  });
 }
