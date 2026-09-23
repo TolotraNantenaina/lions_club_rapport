@@ -279,7 +279,7 @@ function buildDynamicPages(formData) {
  * NO overflow:hidden on the parent — only the article's fixed height
  * constrains the content.
  */
-async function capturePageAsJpg(blocks, pageNumber, formData, showToast) {
+async function capturePageAsCanvas(blocks, pageNumber, formData, showToast, errorLabel = 'JPG') {
   const html = renderToStaticMarkup(
     <PreviewCRPage blocks={blocks} pageNumber={pageNumber} headerData={formData} />
   );
@@ -289,7 +289,7 @@ async function capturePageAsJpg(blocks, pageNumber, formData, showToast) {
   const sourceRoot = container.firstElementChild || container;
 
   try {
-    const canvas = await html2canvas(container, {
+    return await html2canvas(container, {
       scale: 2,
       width: PAGE_WIDTH,
       height: PAGE_HEIGHT,
@@ -340,15 +340,27 @@ async function capturePageAsJpg(blocks, pageNumber, formData, showToast) {
         prepareHtml2CanvasClone(sourceRoot, clonedDoc, clone);
       },
     });
-
-    return canvas.toDataURL('image/jpeg', 0.95);
   } catch (error) {
-    console.error('capturePageAsJpg error:', error);
-    showToast?.('Erreur lors de la génération du JPG');
+    console.error(`capturePageAsCanvas error (${errorLabel}):`, error);
+    showToast?.(`Erreur lors de la génération du ${errorLabel}`);
     return null;
   } finally {
     removeContainer(container);
   }
+}
+
+async function capturePageAsJpg(blocks, pageNumber, formData, showToast) {
+  const canvas = await capturePageAsCanvas(blocks, pageNumber, formData, showToast, 'JPG');
+  return canvas ? canvas.toDataURL('image/jpeg', 0.95) : null;
+}
+
+function sanitizeExportName(name) {
+  return String(name || 'rapport')
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
+    .replace(/\s+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '')
+    || 'rapport';
 }
 
 /* ═══ Main export function ══════════════════════════════════ */
@@ -384,6 +396,49 @@ export async function exportMultiPageJpg(formData, showToast) {
     console.error('exportMultiPageJpg error:', err);
     showToast?.('❌ Erreur lors de la génération du JPG');
     return { baseName, images: [] };
+  }
+}
+
+/* ═══ Multi-page PDF export (jsPDF, client-side) ═══════════ */
+
+/**
+ * Reuses buildDynamicPages (A4 1240×1740 blocks), captures each
+ * page with html2canvas (scale 2, white background), then fills
+ * an A4 portrait PDF (210×297 mm) without extra margins.
+ */
+export async function exportMultiPagePdf(formData, showToast) {
+  const nomDeLaNote = sanitizeExportName(formData.clubName || 'rapport');
+
+  try {
+    await document.fonts.ready;
+
+    const { jsPDF } = await import('jspdf');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pages = buildDynamicPages(formData);
+
+    let addedPages = 0;
+    for (let index = 0; index < pages.length; index++) {
+      const { blocks, pageNumber } = pages[index];
+      const canvas = await capturePageAsCanvas(blocks, pageNumber, formData, showToast, 'PDF');
+      if (!canvas) continue;
+
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      if (addedPages > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+      addedPages += 1;
+    }
+
+    if (addedPages === 0) {
+      showToast?.('❌ Erreur lors de la génération du PDF');
+      return false;
+    }
+
+    pdf.save(`Rapport_Lions_${nomDeLaNote}.pdf`);
+    return true;
+  } catch (err) {
+    console.error('exportMultiPagePdf error:', err);
+    showToast?.('❌ Erreur lors de la génération du PDF');
+    return false;
   }
 }
 

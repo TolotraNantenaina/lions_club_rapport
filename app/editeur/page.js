@@ -8,9 +8,10 @@ import Sidebar from './Sidebar';
 import { EditorHeader } from '../components/editor/EditorHeader';
 import { TipTapEditor } from '../components/editor/TipTapEditor';
 import { JpgDownloadModal } from '../components/JpgDownloadModal';
+import { ProcessingLoader } from '../components/processingLoader';
 import { EditorToolbar } from '../components/editor/EditorToolbar';
 import { CLUB_TYPE, filterClubsByTypeAndQuery, normalizeClubType } from '../../lib/clubSearchFilter';
-import { exportMultiPageJpg, downloadSingleJpg } from './exportUtils';
+import { exportMultiPageJpg, exportMultiPagePdf, downloadSingleJpg } from './exportUtils';
 
 export default function EditeurPage() {
   const { clubsData, clubsLoading, clubsError } = useClubsData();
@@ -24,6 +25,7 @@ export default function EditeurPage() {
 
   const [toast, setToast] = useState('');
   const [downloadModal, setDownloadModal] = useState(null);
+  const [pdfExporting, setPdfExporting] = useState(false);
   const [toolbarHidden, setToolbarHidden] = useState(false);
   const editorRef = useRef(null);
   const scaleContainerRef = useRef(null);
@@ -124,6 +126,23 @@ export default function EditeurPage() {
     }
   }, [selectedClub, showToast]);
 
+  const exportPdf = useCallback(async () => {
+    const editor = editorRef.current;
+    if (!editor || pdfExporting) return;
+
+    const html = editor.getHTML();
+    setPdfExporting(true);
+    try {
+      const ok = await exportMultiPagePdf(html, selectedClub, activeNote?.title, showToast);
+      if (ok) showToast('PDF téléchargé');
+    } catch (err) {
+      console.error(err);
+      showToast('Erreur lors de la génération du PDF');
+    } finally {
+      setPdfExporting(false);
+    }
+  }, [selectedClub, activeNote?.title, pdfExporting, showToast]);
+
   const handleDownloadSingleJpg = useCallback((imageUrl, fileName) => {
     downloadSingleJpg(imageUrl, fileName);
   }, []);
@@ -201,17 +220,31 @@ export default function EditeurPage() {
               </div>
             </label>
           </div>
-          <button
-            type="button"
-            onClick={exportJpg}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#d4af37] px-6 py-3 text-sm font-bold text-[#1a3a52] shadow-lg shadow-[#d4af37]/25 transition-all hover:scale-105 hover:bg-[#e5c158] hover:shadow-xl active:scale-95 h-[52px]"
-          >
-            📸 Exporter JPG
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={exportJpg}
+              disabled={pdfExporting}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#d4af37] px-6 py-3 text-sm font-bold text-[#1a3a52] shadow-lg shadow-[#d4af37]/25 transition-all hover:scale-105 hover:bg-[#e5c158] hover:shadow-xl active:scale-95 h-[52px] disabled:pointer-events-none disabled:opacity-60"
+            >
+              📸 Exporter JPG
+            </button>
+            <button
+              type="button"
+              onClick={exportPdf}
+              disabled={pdfExporting}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#7a1f2b] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#7a1f2b]/30 transition-all hover:scale-105 hover:bg-[#952636] hover:shadow-xl active:scale-95 h-[52px] disabled:pointer-events-none disabled:opacity-60"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm1 7V3.5L19.5 9zM8.5 17.5v-4H10c.8 0 1.3.4 1.3 1.1 0 .7-.5 1.1-1.3 1.1H9.3v1.8zm.8-2.4h.6c.3 0 .5-.2.5-.5s-.2-.5-.5-.5h-.6zm3 2.4v-4h1.1c1.1 0 1.8.6 1.8 2s-.7 2-1.8 2zm.8-1.6h.3c.5 0 .9-.3.9-1.1s-.4-1.1-.9-1.1h-.3zm2.6 1.6v-4H17c.9 0 1.4.4 1.4 1.1 0 .5-.3.9-.7 1l.9 1.9h-.9l-.8-1.7h-.4v1.7zm.8-2.4h.5c.3 0 .5-.2.5-.5s-.2-.5-.5-.5h-.5z" />
+              </svg>
+              Exporter PDF
+            </button>
+          </div>
         </div>
 
         {/* ── Editor card ───────────────────────────────── */}
-        <section className="overflow-hidden rounded-2xl bg-white/95 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+        <section className={`overflow-hidden rounded-2xl bg-white/95 shadow-[0_20px_60px_rgba(0,0,0,0.12)] ${pdfExporting ? 'pointer-events-none select-none' : ''}`}>
           <div ref={scaleContainerRef} className="overflow-hidden">
             <div
               ref={captureRef}
@@ -230,6 +263,14 @@ export default function EditeurPage() {
           </div>
         </section>
       </div>
+
+      {pdfExporting && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/55 backdrop-blur-[2px]">
+          <div className="rounded-2xl bg-white px-8 py-4 shadow-2xl">
+            <ProcessingLoader label="Génération du PDF…" />
+          </div>
+        </div>
+      )}
 
       {/* ── Toast ───────────────────────────────────────── */}
       {toast && (

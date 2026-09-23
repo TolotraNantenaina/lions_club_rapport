@@ -214,9 +214,18 @@ function buildDynamicPages(html, clubData) {
   }));
 }
 
-/* ═══ Single-page capture to JPG ═══════════════════════════ */
+function sanitizeExportName(name) {
+  return String(name || 'rapport')
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
+    .replace(/\s+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '')
+    || 'rapport';
+}
 
-async function capturePageAsJpg(page, showToast) {
+/* ═══ Single-page capture (html2canvas) ════════════════════ */
+
+async function capturePageAsCanvas(page, showToast, errorLabel = 'JPG') {
   const { headerHtml, contentHtml } = page;
 
   const container = createCaptureContainer(PAGE_WIDTH, PAGE_HEIGHT);
@@ -232,7 +241,7 @@ async function capturePageAsJpg(page, showToast) {
   const sourceRoot = container.firstElementChild || container;
 
   try {
-    const canvas = await html2canvas(container, {
+    return await html2canvas(container, {
       scale: 2,
       width: PAGE_WIDTH,
       height: PAGE_HEIGHT,
@@ -283,15 +292,18 @@ async function capturePageAsJpg(page, showToast) {
         prepareHtml2CanvasClone(sourceRoot, clonedDoc, clone);
       },
     });
-
-    return canvas.toDataURL('image/jpeg', 0.95);
   } catch (error) {
-    console.error('capturePageAsJpg error:', error);
-    showToast?.('Erreur lors de la génération du JPG');
+    console.error(`capturePageAsCanvas error (${errorLabel}):`, error);
+    showToast?.(`Erreur lors de la génération du ${errorLabel}`);
     return null;
   } finally {
     removeContainer(container);
   }
+}
+
+async function capturePageAsJpg(page, showToast) {
+  const canvas = await capturePageAsCanvas(page, showToast, 'JPG');
+  return canvas ? canvas.toDataURL('image/jpeg', 0.95) : null;
 }
 
 /* ═══ Main export function ══════════════════════════════════ */
@@ -317,6 +329,46 @@ export async function exportMultiPageJpg(html, clubData, showToast) {
     console.error('exportMultiPageJpg error:', err);
     showToast?.('Erreur lors de la génération du JPG');
     return { baseName: 'rapport', images: [] };
+  }
+}
+
+/* ═══ Multi-page PDF export (jsPDF, client-side) ═══════════ */
+
+/**
+ * Capture each A4 virtual page (1240×1740) via html2canvas,
+ * then assemble a single A4 portrait PDF (210×297 mm).
+ */
+export async function exportMultiPagePdf(html, clubData, noteTitle, showToast) {
+  try {
+    await document.fonts.ready;
+
+    const { jsPDF } = await import('jspdf');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const nomDeLaNote = sanitizeExportName(noteTitle || clubData?.nomClub || 'rapport');
+    const pages = buildDynamicPages(html, clubData);
+
+    let addedPages = 0;
+    for (let index = 0; index < pages.length; index++) {
+      const canvas = await capturePageAsCanvas(pages[index], showToast, 'PDF');
+      if (!canvas) continue;
+
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      if (addedPages > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+      addedPages += 1;
+    }
+
+    if (addedPages === 0) {
+      showToast?.('Erreur lors de la génération du PDF');
+      return false;
+    }
+
+    pdf.save(`Rapport_Lions_${nomDeLaNote}.pdf`);
+    return true;
+  } catch (err) {
+    console.error('exportMultiPagePdf error:', err);
+    showToast?.('Erreur lors de la génération du PDF');
+    return false;
   }
 }
 
