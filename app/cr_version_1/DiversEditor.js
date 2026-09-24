@@ -144,8 +144,8 @@ export function DiversEditor({ content, onUpdate, showToast }) {
   useEffect(() => {
     if (!floatingBar) return;
     const close = (e) => {
-      if (barRef.current && barRef.current.contains(e.target)) return;
-      if (gridRef.current && gridRef.current.contains(e.target)) return;
+      if (barRef.current?.contains(e.target)) return;
+      if (gridRef.current?.contains(e.target)) return;
       setFloatingBar(null);
       setShowTableGrid(false);
     };
@@ -184,25 +184,26 @@ export function DiversEditor({ content, onUpdate, showToast }) {
   /* ── Floating bar action definitions ───────────────────── */
   const barActions = [
     {
+      id: 'reset',
       type: 'reset',
       label: 'Normal',
       action: () => run(() => editor.chain().focus().setParagraph().unsetAllMarks().run()),
       active: !isActive('bold') && !isActive('italic') && !isActive('heading'),
     },
-    { type: 'sep' },
-    { type: 'toggle', label: 'B', action: () => run(() => editor.chain().focus().toggleBold().run()), active: isActive('bold'), cls: 'font-bold' },
-    { type: 'toggle', label: 'I', action: () => run(() => editor.chain().focus().toggleItalic().run()), active: isActive('italic'), cls: 'italic' },
-    { type: 'toggle', label: 'U', action: () => run(() => editor.chain().focus().toggleUnderline().run()), active: isActive('underline'), cls: 'underline' },
-    { type: 'sep' },
-    { type: 'toggle', label: 'H1', action: () => run(() => editor.chain().focus().toggleHeading({ level: 1 }).run()), active: isActive('heading', { level: 1 }) },
-    { type: 'toggle', label: 'H2', action: () => run(() => editor.chain().focus().toggleHeading({ level: 2 }).run()), active: isActive('heading', { level: 2 }) },
-    { type: 'sep' },
-    { type: 'toggle', label: '•', action: () => run(() => editor.chain().focus().toggleBulletList().run()), active: isActive('bulletList') },
-    { type: 'toggle', label: '1.', action: () => run(() => editor.chain().focus().toggleOrderedList().run()), active: isActive('orderedList') },
-    { type: 'sep' },
-    { type: 'toggle', label: '⫷', action: () => run(() => editor.chain().focus().setTextAlign('left').run()), active: isActive({ textAlign: 'left' }) },
-    { type: 'toggle', label: '☰', action: () => run(() => editor.chain().focus().setTextAlign('center').run()), active: isActive({ textAlign: 'center' }) },
-    { type: 'toggle', label: '⫸', action: () => run(() => editor.chain().focus().setTextAlign('right').run()), active: isActive({ textAlign: 'right' }) },
+    { id: 'sep-1', type: 'sep' },
+    { id: 'bold', type: 'toggle', label: 'B', action: () => run(() => editor.chain().focus().toggleBold().run()), active: isActive('bold'), cls: 'font-bold' },
+    { id: 'italic', type: 'toggle', label: 'I', action: () => run(() => editor.chain().focus().toggleItalic().run()), active: isActive('italic'), cls: 'italic' },
+    { id: 'underline', type: 'toggle', label: 'U', action: () => run(() => editor.chain().focus().toggleUnderline().run()), active: isActive('underline'), cls: 'underline' },
+    { id: 'sep-2', type: 'sep' },
+    { id: 'h1', type: 'toggle', label: 'H1', action: () => run(() => editor.chain().focus().toggleHeading({ level: 1 }).run()), active: isActive('heading', { level: 1 }) },
+    { id: 'h2', type: 'toggle', label: 'H2', action: () => run(() => editor.chain().focus().toggleHeading({ level: 2 }).run()), active: isActive('heading', { level: 2 }) },
+    { id: 'sep-3', type: 'sep' },
+    { id: 'bullet', type: 'toggle', label: '•', action: () => run(() => editor.chain().focus().toggleBulletList().run()), active: isActive('bulletList') },
+    { id: 'ordered', type: 'toggle', label: '1.', action: () => run(() => editor.chain().focus().toggleOrderedList().run()), active: isActive('orderedList') },
+    { id: 'sep-4', type: 'sep' },
+    { id: 'align-left', type: 'toggle', label: '⫷', action: () => run(() => editor.chain().focus().setTextAlign('left').run()), active: isActive({ textAlign: 'left' }) },
+    { id: 'align-center', type: 'toggle', label: '☰', action: () => run(() => editor.chain().focus().setTextAlign('center').run()), active: isActive({ textAlign: 'center' }) },
+    { id: 'align-right', type: 'toggle', label: '⫸', action: () => run(() => editor.chain().focus().setTextAlign('right').run()), active: isActive({ textAlign: 'right' }) },
   ];
 
   const inTable = isActive('table');
@@ -224,7 +225,13 @@ export function DiversEditor({ content, onUpdate, showToast }) {
 
       {/* Hidden file input for import */}
       <input id="divers-file-input" type="file" accept=".docx,.txt,.pdf" className="hidden"
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) importFile(f); e.target.value = ''; }} />
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) {
+            importFile(f);
+          }
+          e.target.value = '';
+        }} />
 
       <DropOverlay visible={isDragging} />
 
@@ -241,13 +248,13 @@ export function DiversEditor({ content, onUpdate, showToast }) {
           className="animate-context-menu fixed z-[9999] flex items-center gap-0.5 rounded-lg bg-slate-900 p-1 shadow-xl"
           style={{ left: `${floatingBar.x}px`, top: `${floatingBar.y}px`, transform: 'translate(-50%, -100%)' }}
         >
-          {barActions.map((item, i) => {
+          {barActions.map((item) => {
             if (item.type === 'sep') {
-              return <div key={`s${i}`} className="mx-0.5 h-3 w-px bg-slate-600" />;
+              return <div key={item.id} className="mx-0.5 h-3 w-px bg-slate-600" />;
             }
             if (item.type === 'reset') {
               return (
-                <button key="reset" type="button"
+                <button key={item.id} type="button"
                   onClick={() => { item.action(); setFloatingBar(null); }}
                   className={`flex h-4 items-center rounded px-1 text-[8px] font-semibold transition ${item.active ? 'bg-slate-700 text-white' : 'text-slate-300 hover:bg-slate-700'}`}
                   title="Texte normal"
@@ -255,7 +262,7 @@ export function DiversEditor({ content, onUpdate, showToast }) {
               );
             }
             return (
-              <button key={item.label} type="button"
+              <button key={item.id} type="button"
                 onClick={() => { item.action(); setFloatingBar(null); }}
                 className={`flex h-4 w-4 items-center justify-center rounded text-[8px] font-semibold transition ${item.active ? 'bg-[#2c5aa0] text-white' : 'text-slate-300 hover:bg-slate-700'} ${item.cls || ''}`}
                 title={item.label}

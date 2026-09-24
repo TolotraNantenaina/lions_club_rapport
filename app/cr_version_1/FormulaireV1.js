@@ -28,6 +28,12 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
   const [isReunionDropdownOpen, setIsReunionDropdownOpen] = useState(false);
   const clubSearchInputRef = useRef(null);
   const memberFields = ['memberPresent', 'memberExcused', 'memberAbsent'];
+  const participantFields = [
+    { field: 'memberPresent', label: 'Membre présent' },
+    { field: 'memberExcused', label: 'Membre excusé' },
+    { field: 'memberAbsent', label: 'Membre absent' },
+    { field: 'guests', label: 'Invité' },
+  ];
   const reunionOptions = ['', 'AG/RS', 'AG/RS EXTRA', 'AG/RS MIXTE', 'CA', 'CA EXTRA', 'AUTRE'];
 
   const filteredClubOptions = useMemo(
@@ -96,6 +102,22 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
     updateField('reunionType', reunionType);
   };
 
+  const renderClubDropdownContent = () => {
+    if (clubsLoading) {
+      return <p className="px-4 py-3 text-[0.95em] text-dark-grey">Chargement des clubs...</p>;
+    }
+    if (clubsError) {
+      return <p className="px-4 py-3 text-[0.95em] text-red-600">{clubsError}</p>;
+    }
+    if (filteredClubOptions.length === 0) {
+      return <p className="px-4 py-3 text-[0.95em] text-dark-grey">Aucun club trouvé</p>;
+    }
+    return filteredClubOptions.map((clubName) => (
+      <button key={clubName} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => selectClub(clubName)}
+        className="block w-full px-4 py-3 text-left text-[0.95em] text-slate-800 transition hover:bg-[rgba(44,90,160,0.08)] hover:text-primary">{clubName}</button>
+    ));
+  };
+
   return (
     <div className="min-h-screen text-slate-900 pb-4 bg-transparent">
       <div className="mx-auto grid gap-8">
@@ -119,33 +141,22 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
                     onBlur={() => window.setTimeout(() => setIsClubDropdownOpen(false), 120)}
                     className="form-input bg-light-grey pt-[12px] pr-[7.5rem]"
                   />
-                  <div
-                    className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center rounded-[10px] bg-[#d4af37] p-1"
-                    onMouseDown={(event) => event.preventDefault()}
-                  >
+                  <fieldset className="absolute right-2 top-1/2 m-0 flex min-w-0 -translate-y-1/2 items-center rounded-[10px] border-0 bg-[#d4af37] p-1">
+                    <legend className="absolute h-px w-px overflow-hidden whitespace-nowrap border-0 p-0 [clip:rect(0,0,0,0)]">Type de club</legend>
                     <button type="button" aria-pressed={selectedClubType === CLUB_TYPE.LION}
+                      onMouseDown={(event) => event.preventDefault()}
                       onClick={(event) => handleClubTypeChange(CLUB_TYPE.LION, event)}
                       className={['rounded-[8px] px-3 py-1 text-sm font-semibold transition', selectedClubType === CLUB_TYPE.LION ? 'bg-accent text-white shadow-sm' : 'text-slate-800 hover:text-primary'].join(' ')}
                     >Lion</button>
                     <button type="button" aria-pressed={selectedClubType === CLUB_TYPE.LEO}
+                      onMouseDown={(event) => event.preventDefault()}
                       onClick={(event) => handleClubTypeChange(CLUB_TYPE.LEO, event)}
                       className={['rounded-[8px] px-3 py-1 text-sm font-semibold transition', selectedClubType === CLUB_TYPE.LEO ? 'bg-accent text-white shadow-sm' : 'text-slate-800 hover:text-primary'].join(' ')}
                     >Leo</button>
-                  </div>
+                  </fieldset>
                   {isClubDropdownOpen && (
                     <div className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-lg border-2 border-[var(--border)] bg-white shadow-[0_16px_35px_rgba(0,0,0,0.14)]">
-                      {clubsLoading ? (
-                        <p className="px-4 py-3 text-[0.95em] text-dark-grey">Chargement des clubs...</p>
-                      ) : clubsError ? (
-                        <p className="px-4 py-3 text-[0.95em] text-red-600">{clubsError}</p>
-                      ) : filteredClubOptions.length > 0 ? (
-                        filteredClubOptions.map((clubName) => (
-                          <button key={clubName} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => selectClub(clubName)}
-                            className="block w-full px-4 py-3 text-left text-[0.95em] text-slate-800 transition hover:bg-[rgba(44,90,160,0.08)] hover:text-primary">{clubName}</button>
-                        ))
-                      ) : (
-                        <p className="px-4 py-3 text-[0.95em] text-dark-grey">Aucun club trouvé</p>
-                      )}
+                      {renderClubDropdownContent()}
                     </div>
                   )}
                 </div>
@@ -206,8 +217,8 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
           <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
             <SectionHeading title="👥 Participants" />
             <div className="grid gap-6 sm:grid-cols-2">
-              {['memberPresent', 'memberExcused', 'memberAbsent', 'guests'].map((field) => (
-                <FormField key={field} label={field === 'memberPresent' ? 'Membre présent' : field === 'memberExcused' ? 'Membre excusé' : field === 'memberAbsent' ? 'Membre absent' : 'Invité'} htmlFor={field}>
+              {participantFields.map(({ field, label }) => (
+                <FormField key={field} label={label} htmlFor={field}>
                   <input id={field} type="number" min="0" value={formData[field]}
                     onChange={(e) => updateField(field, e.target.value)} className="form-input pt-[12px]" />
                 </FormField>

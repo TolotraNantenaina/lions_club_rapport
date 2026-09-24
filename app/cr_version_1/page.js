@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useClubsData } from '../helpers/useClubsData';
 import FormulaireV1 from './FormulaireV1';
 import { ProcessingLoader } from '../components/processingLoader';
@@ -126,7 +127,7 @@ export default function CrVersion1Page() {
         <header className="relative mb-7 text-white mx-auto w-full min-[1200px]:max-w-[990px]">
           <div className="text-center">
             <div className="mx-auto flex h-[60px] items-center justify-center gap-2 py-3">
-              <img src="/ico_lions_club_transparent.png" alt="Logo Lions Club" className="mb-2 h-[55px] w-[55px]" />
+              <Image src="/ico_lions_club_transparent.png" alt="Logo Lions Club" width={55} height={55} className="mb-2 h-[55px] w-[55px]" />
               <h1 className="mb-2 text-[1.8rem] font-bold tracking-tight sm:text-[2.5rem]">Lions Club</h1>
             </div>
             <p className="text-[1.1em]">Compte-Rendu de Réunion Statutaire — V1 TipTap</p>
@@ -229,8 +230,10 @@ export default function CrVersion1Page() {
                         className="text-sm text-muted-foreground disabled:opacity-40 text-right ml-auto mt-[-35px]"
                       >Suivant</button>
                     )}
-                    <img src={currentImage} alt="Converted document preview"
-                      className="w-full rounded-lg shadow-custom object-contain max-h-[520px] animate-fade-in-up" />
+                    {currentImage && (
+                      <Image src={currentImage} alt="Converted document preview" width={1240} height={1740} unoptimized
+                        className="h-auto w-full max-h-[520px] rounded-lg object-contain shadow-custom animate-fade-in-up" />
+                    )}
                   </div>
                 </div>
 

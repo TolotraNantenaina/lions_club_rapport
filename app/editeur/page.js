@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import Image from 'next/image';
 
 import { useClubsData } from '../helpers/useClubsData';
 import { useEditeurNotes } from './useEditeurNotes';
@@ -11,12 +12,11 @@ import { JpgDownloadModal } from '../components/JpgDownloadModal';
 import { ProcessingLoader } from '../components/processingLoader';
 import { CLUB_TYPE, filterClubsByTypeAndQuery, normalizeClubType } from '../../lib/clubSearchFilter';
 import { exportMultiPageJpg, exportMultiPagePdf, downloadSingleJpg } from './exportUtils';
-import { DropOverlay } from '../components/editor/DropOverlay';
 import { importFileToEditor } from '../components/editor/useFileImport';
 
 export default function EditeurPage() {
   const { clubsData, clubsLoading, clubsError } = useClubsData();
-  const { notes, activeNote, activeNoteId, initialized, createNote, deleteNote, updateNote, selectNote } = useEditeurNotes();
+  const { notes, activeNote, activeNoteId, createNote, deleteNote, updateNote, selectNote } = useEditeurNotes();
 
   const [selectedClub, setSelectedClub] = useState(null);
   const [clubType, setClubType] = useState(CLUB_TYPE.LION);
@@ -31,29 +31,9 @@ export default function EditeurPage() {
   const [toolbarHidden, setToolbarHidden] = useState(false);
   const editorRef = useRef(null);
   const scaleContainerRef = useRef(null);
-  const zoomWrapperRef = useRef(null);
   const captureRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const dragCounterRef = useRef(0);
-
-  /* ── Zoom on report body only (toolbar stays sticky, unaffected) ─ */
-  useEffect(() => {
-    const container = scaleContainerRef.current;
-    const zoomWrapper = zoomWrapperRef.current;
-    if (!container || !zoomWrapper) return;
-
-    const updateZoom = () => {
-      const available = container.clientWidth;
-      const ratio = available / 1240;
-      const z = Math.min(1, Math.max(0.4, ratio));
-      zoomWrapper.style.zoom = z;
-    };
-
-    updateZoom();
-    const ro = new ResizeObserver(updateZoom);
-    ro.observe(container);
-    return () => ro.disconnect();
-  }, []);
 
   const filteredClubOptions = useMemo(
     () => filterClubsByTypeAndQuery(clubsData, clubType, clubSearch),
@@ -152,6 +132,22 @@ export default function EditeurPage() {
     downloadSingleJpg(imageUrl, fileName);
   }, []);
 
+  const renderClubDropdownContent = () => {
+    if (clubsLoading) {
+      return <p className="px-4 py-3 text-[0.95em] text-dark-grey">Chargement des clubs...</p>;
+    }
+    if (clubsError) {
+      return <p className="px-4 py-3 text-[0.95em] text-red-600">{clubsError}</p>;
+    }
+    if (filteredClubOptions.length === 0) {
+      return <p className="px-4 py-3 text-[0.95em] text-dark-grey">Aucun club trouvé</p>;
+    }
+    return filteredClubOptions.map((clubName) => (
+      <button key={clubName} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => selectClub(clubName)}
+        className="block w-full px-4 py-3 text-left text-[0.95em] text-slate-800 transition hover:bg-[rgba(44,90,160,0.08)] hover:text-primary">{clubName}</button>
+    ));
+  };
+
   const handleImportFile = useCallback(async (file) => {
     const editor = editorRef.current;
     if (!editor || !file) return;
@@ -184,7 +180,7 @@ export default function EditeurPage() {
         <header className="relative mb-7 mx-auto w-full min-[1200px]:max-w-[990px]">
           <div className="text-center">
             <div className="mx-auto flex h-[60px] items-center justify-center gap-2 py-3">
-              <img src="/ico_lions_club_transparent.png" alt="Logo Lions Club" className="mb-2 h-[55px] w-[55px]" />
+              <Image src="/ico_lions_club_transparent.png" alt="Logo Lions Club" width={55} height={55} className="mb-2 h-[55px] w-[55px]" />
               <h1 className="mb-2 text-[1.8rem] font-bold tracking-tight text-white sm:text-[2.5rem]">Lions Club</h1>
             </div>
             <p className="text-[1.1em] text-white">Éditeur de Rapport</p>
@@ -212,29 +208,16 @@ export default function EditeurPage() {
                   onBlur={() => window.setTimeout(() => setIsClubDropdownOpen(false), 120)}
                   className="form-input bg-light-grey pt-[12px] pr-[7.5rem]"
                 />
-                <div
-                  className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center rounded-[10px] bg-[#d4af37] p-1"
-                  onMouseDown={(event) => event.preventDefault()}
-                >
-                  <button type="button" aria-pressed={clubType === CLUB_TYPE.LION} onClick={(e) => handleClubTypeChange(CLUB_TYPE.LION, e)}
+                <fieldset className="absolute right-2 top-1/2 m-0 flex min-w-0 -translate-y-1/2 items-center rounded-[10px] border-0 bg-[#d4af37] p-1">
+                  <legend className="absolute h-px w-px overflow-hidden whitespace-nowrap border-0 p-0 [clip:rect(0,0,0,0)]">Type de club</legend>
+                  <button type="button" aria-pressed={clubType === CLUB_TYPE.LION} onMouseDown={(e) => e.preventDefault()} onClick={(e) => handleClubTypeChange(CLUB_TYPE.LION, e)}
                     className={['rounded-[8px] px-3 py-1 text-sm font-semibold transition', clubType === CLUB_TYPE.LION ? 'bg-accent text-white shadow-sm' : 'text-slate-800 hover:text-primary'].join(' ')}>Lion</button>
-                  <button type="button" aria-pressed={clubType === CLUB_TYPE.LEO} onClick={(e) => handleClubTypeChange(CLUB_TYPE.LEO, e)}
+                  <button type="button" aria-pressed={clubType === CLUB_TYPE.LEO} onMouseDown={(e) => e.preventDefault()} onClick={(e) => handleClubTypeChange(CLUB_TYPE.LEO, e)}
                     className={['rounded-[8px] px-3 py-1 text-sm font-semibold transition', clubType === CLUB_TYPE.LEO ? 'bg-accent text-white shadow-sm' : 'text-slate-800 hover:text-primary'].join(' ')}>Leo</button>
-                </div>
+                </fieldset>
                 {isClubDropdownOpen && (
                   <div className="absolute z-30 mt-2 max-h-64 w-full overflow-y-auto rounded-lg border-2 border-[var(--border)] bg-white shadow-[0_16px_35px_rgba(0,0,0,0.14)]">
-                    {clubsLoading ? (
-                      <p className="px-4 py-3 text-[0.95em] text-dark-grey">Chargement des clubs...</p>
-                    ) : clubsError ? (
-                      <p className="px-4 py-3 text-[0.95em] text-red-600">{clubsError}</p>
-                    ) : filteredClubOptions.length > 0 ? (
-                      filteredClubOptions.map((clubName) => (
-                        <button key={clubName} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => selectClub(clubName)}
-                          className="block w-full px-4 py-3 text-left text-[0.95em] text-slate-800 transition hover:bg-[rgba(44,90,160,0.08)] hover:text-primary">{clubName}</button>
-                      ))
-                    ) : (
-                      <p className="px-4 py-3 text-[0.95em] text-dark-grey">Aucun club trouvé</p>
-                    )}
+                    {renderClubDropdownContent()}
                   </div>
                 )}
               </div>
@@ -265,10 +248,10 @@ export default function EditeurPage() {
         </div>
 
         {/* ── Editor card ───────────────────────────────── */}
-        <section className={`rounded-2xl bg-white/95 shadow-[0_20px_60px_rgba(0,0,0,0.12)] ${pdfExporting || isImporting ? 'pointer-events-none select-none' : ''}`}>
+        <section className={`overflow-hidden rounded-2xl bg-white/95 shadow-[0_20px_60px_rgba(0,0,0,0.12)] ${pdfExporting || isImporting ? 'pointer-events-none select-none' : ''}`}>
           <div
             ref={scaleContainerRef}
-            className="relative flex w-full flex-col items-center"
+            className="relative flex w-full flex-col items-center overflow-hidden"
           >
             {isImporting && (
               <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/85 backdrop-blur-[2px]">
@@ -287,11 +270,22 @@ export default function EditeurPage() {
               />
             </div>
 
-            <div ref={zoomWrapperRef} className="w-full max-w-[1240px]">
-              <div
-                ref={captureRef}
-                id="rapport-capture"
-                className="w-[1240px] max-w-full bg-white text-black border border-t-0 border-gray-200/50 shadow-[0_20px_50px_rgba(0,0,0,0.3)] select-none"
+            <div className="w-full max-w-[1240px]">
+              <TipTapEditor
+                editorRef={editorRef}
+                content={activeNote?.html || ''}
+                clubType={clubType}
+                selectedClub={selectedClub}
+                typeFor="editor"
+                hideToolbar
+                captureRef={captureRef}
+                scaleContainerRef={scaleContainerRef}
+                onUpdate={handleEditorUpdate}
+                showToast={showToast}
+                toolbarHidden={toolbarHidden}
+                onToggleHide={() => setToolbarHidden((v) => !v)}
+                onImportingChange={setIsImporting}
+                showDropOverlay={isDragging && !isImporting}
                 onDragEnter={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -319,22 +313,7 @@ export default function EditeurPage() {
                   const file = e.dataTransfer?.files?.[0];
                   if (file) handleImportFile(file);
                 }}
-              >
-                <TipTapEditor
-                  editorRef={editorRef}
-                  content={activeNote?.html || ''}
-                  clubType={clubType}
-                  selectedClub={selectedClub}
-                  typeFor="editor"
-                  hideToolbar
-                  onUpdate={handleEditorUpdate}
-                  showToast={showToast}
-                  toolbarHidden={toolbarHidden}
-                  onToggleHide={() => setToolbarHidden((v) => !v)}
-                  onImportingChange={setIsImporting}
-                />
-                <DropOverlay visible={isDragging && !isImporting} />
-              </div>
+              />
             </div>
           </div>
         </section>

@@ -33,8 +33,8 @@ export function EditorToolbar({ editorRef, showToast, fileInputId = 'editor-file
   useEffect(() => {
     if (!showColors && !showTableGrid) return;
     const close = (e) => {
-      if (colorRef.current && colorRef.current.contains(e.target)) return;
-      if (gridRef.current && gridRef.current.contains(e.target)) return;
+      if (colorRef.current?.contains(e.target)) return;
+      if (gridRef.current?.contains(e.target)) return;
       setShowColors(false);
       setShowTableGrid(false);
     };
