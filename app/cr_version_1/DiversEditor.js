@@ -153,8 +153,78 @@ export function DiversEditor({ content, onUpdate, showToast }) {
   }, [floatingBar]);
 
   /* ── File import ───────────────────────────────────────── */
-  const { isDragging, handleDragEnter, handleDragLeave, handleDragOver, handleDrop, importFile } =
+  const { isDragging, handleDragEnter, handleDragLeave, handleDragOver } =
     useFileImport(editor, showToast);
+  const [isImporting, setIsImporting] = useState(false);
+
+  const importFile = useCallback(async (file) => {
+    if (!editor) return;
+    setIsImporting(true);
+    try {
+      const name = file.name.toLowerCase();
+      if (name.endsWith('.docx')) {
+        const buffer = await file.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer: buffer });
+        const html = result.value || '';
+        if (html.trim()) {
+          editor.chain().focus().setContent(html).run();
+        } else {
+          showToast?.('Le document est vide');
+        }
+      } else if (name.endsWith('.pdf')) {
+        const pdfjsLib = await import('pdfjs-dist');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdfjs-dist/build/pdf.worker.mjs';
+        const buffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buffer, useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
+        const totalPages = pdf.numPages;
+        const paragraphs = [];
+
+        for (let i = 1; i <= totalPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const lines = rebuildLinesFromItems(textContent.items);
+
+          if (totalPages > 1) {
+            paragraphs.push(`<p style="font-weight:bold;color:#173d68;">— Page ${i} —</p>`);
+          }
+
+          for (const line of lines) {
+            if (line.trim()) {
+              paragraphs.push(`<p>${line}</p>`);
+            }
+          }
+        }
+
+        const html = paragraphs.join('');
+        if (html.trim()) {
+          editor.chain().focus().setContent(html).run();
+        } else {
+          showToast?.('Le PDF ne contient pas de texte extractible');
+        }
+      } else if (name.endsWith('.txt')) {
+        const text = await file.text();
+        const html = text.split(/\n\n+/).map((p) => `<p>${escapeHtml(p.replace(/\n/g, ' '))}</p>`).join('');
+        editor.chain().focus().setContent(html).run();
+      } else {
+        showToast?.('Format non supporté (.docx, .pdf, .txt)');
+      }
+    } catch (err) {
+      console.error('Import error:', err);
+      showToast?.("Erreur lors de l'import du fichier");
+    } finally {
+      setIsImporting(false);
+    }
+  }, [editor, showToast]);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current = 0;
+    setIsDragging(false);
+
+    const file = e.dataTransfer?.files?.[0];
+    if (file) importFile(file);
+  }, [importFile]);
 
   if (!editor) return null;
 
@@ -324,4 +394,39 @@ export function DiversEditor({ content, onUpdate, showToast }) {
       )}
     </div>
   );
+}
+
+function rebuildLinesFromItems(items) {
+  if (!items.length) return [];
+
+  const sorted = [...items].sort((a, b) => {
+    const dy = a.transform[5] - b.transform[5];
+    if (Math.abs(dy) > 2) return dy;
+    return a.transform[4] - b.transform[4];
+  });
+
+  const lines = [];
+  let currentLine = '';
+  let lastY = null;
+
+  for (const item of sorted) {
+    const y = Math.round(item.transform[5]);
+    if (lastY !== null && Math.abs(y - lastY) > 2) {
+      lines.push(currentLine);
+      currentLine = '';
+    }
+    currentLine += (currentLine && !currentLine.endsWith(' ') ? ' ' : '') + item.str;
+    lastY = y;
+  }
+  if (currentLine) lines.push(currentLine);
+
+  return lines;
+}
+
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, '&')
+    .replace(/</g, '<')
+    .replace(/>/g, '>')
+    .replace(/"/g, '"');
 }

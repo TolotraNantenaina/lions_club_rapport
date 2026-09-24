@@ -12,6 +12,8 @@ import { ProcessingLoader } from '../components/processingLoader';
 import { EditorToolbar } from '../components/editor/EditorToolbar';
 import { CLUB_TYPE, filterClubsByTypeAndQuery, normalizeClubType } from '../../lib/clubSearchFilter';
 import { exportMultiPageJpg, exportMultiPagePdf, downloadSingleJpg } from './exportUtils';
+import { DropOverlay } from '../components/editor/DropOverlay';
+import { rebuildLinesFromItems, escapeHtml } from '../components/editor/useFileImport';
 
 export default function EditeurPage() {
   const { clubsData, clubsLoading, clubsError } = useClubsData();
@@ -30,6 +32,44 @@ export default function EditeurPage() {
   const editorRef = useRef(null);
   const scaleContainerRef = useRef(null);
   const captureRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const importPdfFromFile = async (file) => {
+    try {
+      const pdfjsLib = await import('pdfjs-dist');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdfjs-dist/build/pdf.worker.mjs';
+      const buffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buffer, useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
+      const totalPages = pdf.numPages;
+      const paragraphs = [];
+
+      for (let i = 1; i <= totalPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const lines = rebuildLinesFromItems(textContent.items);
+
+        if (totalPages > 1) {
+          paragraphs.push(`<p style="font-weight:bold;color:#173d68;">— Page ${i} —</p>`);
+        }
+
+        for (const line of lines) {
+          if (line.trim()) {
+            paragraphs.push(`<p>${line}</p>`);
+          }
+        }
+      }
+
+      const html = paragraphs.join('');
+      if (html.trim()) {
+        editorRef.current?.chain().focus().setContent(html).run();
+      } else {
+        showToast?.('Le PDF ne contient pas de texte extractible');
+      }
+    } catch (err) {
+      console.error('Import error:', err);
+      showToast?.("Erreur lors de l'import du fichier");
+    }
+  };
 
   /* ── Zoom directly on #rapport-capture ─────────────────── */
   useEffect(() => {
@@ -220,36 +260,55 @@ export default function EditeurPage() {
               </div>
             </label>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="grid grid-cols-2 gap-3 max-w-[640px]:w-full">
             <button
               type="button"
               onClick={exportJpg}
               disabled={pdfExporting}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#d4af37] px-6 py-3 text-sm font-bold text-[#1a3a52] shadow-lg shadow-[#d4af37]/25 transition-all hover:scale-105 hover:bg-[#e5c158] hover:shadow-xl active:scale-95 h-[52px] disabled:pointer-events-none disabled:opacity-60"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#d4af37] mt-1 max-w-[640px]:ml-0 px-4 py-3 text-sm font-bold text-[#1a3a52] shadow-lg shadow-[#d4af37]/25 transition-all hover:scale-105 hover:bg-[#e5c158] hover:shadow-xl active:scale-95 h-[50px] disabled:pointer-events-none disabled:opacity-60"
             >
-              📸 Exporter JPG
+              📸 <span className="truncate">Exporter JPG</span>
             </button>
             <button
               type="button"
               onClick={exportPdf}
               disabled={pdfExporting}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#7a1f2b] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#7a1f2b]/30 transition-all hover:scale-105 hover:bg-[#952636] hover:shadow-xl active:scale-95 h-[52px] disabled:pointer-events-none disabled:opacity-60"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#7a1f2b] mt-1 max-w-[640px]:ml-0 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#7a1f2b]/30 transition-all hover:scale-105 hover:bg-[#952636] hover:shadow-xl active:scale-95 h-[50px] disabled:pointer-events-none disabled:opacity-60"
             >
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 shrink-0" fill="#d4af37">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm1 7V3.5L19.5 9zM8.5 17.5v-4H10c.8 0 1.3.4 1.3 1.1 0 .7-.5 1.1-1.3 1.1H9.3v1.8zm.8-2.4h.6c.3 0 .5-.2.5-.5s-.2-.5-.5-.5h-.6zm3 2.4v-4h1.1c1.1 0 1.8.6 1.8 2s-.7 2-1.8 2zm.8-1.6h.3c.5 0 .9-.3.9-1.1s-.4-1.1-.9-1.1h-.3zm2.6 1.6v-4H17c.9 0 1.4.4 1.4 1.1 0 .5-.3.9-.7 1l.9 1.9h-.9l-.8-1.7h-.4v1.7zm.8-2.4h.5c.3 0 .5-.2.5-.5s-.2-.5-.5-.5h-.5z" />
               </svg>
-              Exporter PDF
+              <span className="truncate">Exporter PDF</span>
             </button>
-          </div>
+            </div>
+
         </div>
 
         {/* ── Editor card ───────────────────────────────── */}
         <section className={`overflow-hidden rounded-2xl bg-white/95 shadow-[0_20px_60px_rgba(0,0,0,0.12)] ${pdfExporting ? 'pointer-events-none select-none' : ''}`}>
-          <div ref={scaleContainerRef} className="overflow-hidden">
+          <div ref={scaleContainerRef} className="overflow-hidden flex flex-col items-center justify-center">
             <div
               ref={captureRef}
               id="rapport-capture"
               className="bg-white text-black border border-gray-200/50 shadow-[0_20px_50px_rgba(0,0,0,0.3)] select-none"
+              onDragEnter={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragging(true);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+                const file = e.dataTransfer?.files?.[0];
+                if (file) importPdfFromFile(file);
+              }}
             >
               <EditorToolbar editorRef={editorRef} showToast={showToast} hidden={toolbarHidden} onToggleHide={() => setToolbarHidden((v) => !v)} />
               <EditorHeader clubType={clubType} selectedClub={selectedClub} />
@@ -259,8 +318,10 @@ export default function EditeurPage() {
                 onUpdate={handleEditorUpdate}
                 showToast={showToast}
               />
+              <DropOverlay visible={isDragging} />
             </div>
           </div>
+    
         </section>
       </div>
 

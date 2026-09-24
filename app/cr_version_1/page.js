@@ -109,11 +109,12 @@ export default function CrVersion1Page() {
   /* ── Don't render until localStorage is loaded ──────────── */
   if (!initialized) {
     return (
-      <main className="mx-8 min-h-screen">
-        <div className="flex items-center justify-center py-32">
+      <main className="mx-8 min-h-screen h-full bg-slate-950">
+        <div className="flex items-center justify-center min-h-screen">
           <ProcessingLoader label="Chargement du formulaire…" />
         </div>
       </main>
+ 
     );
   }
 
@@ -177,7 +178,7 @@ export default function CrVersion1Page() {
                   disabled={pdfExporting}
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#7a1f2b] px-[1.25rem] py-[0.95rem] font-bold text-white shadow-lg shadow-[#7a1f2b]/30 transition-all hover:scale-105 hover:bg-[#952636] hover:shadow-xl active:scale-95 disabled:pointer-events-none disabled:opacity-60"
                 >
-                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="#d4af37">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm1 7V3.5L19.5 9zM8.5 17.5v-4H10c.8 0 1.3.4 1.3 1.1 0 .7-.5 1.1-1.3 1.1H9.3v1.8zm.8-2.4h.6c.3 0 .5-.2.5-.5s-.2-.5-.5-.5h-.6zm3 2.4v-4h1.1c1.1 0 1.8.6 1.8 2s-.7 2-1.8 2zm.8-1.6h.3c.5 0 .9-.3.9-1.1s-.4-1.1-.9-1.1h-.3zm2.6 1.6v-4H17c.9 0 1.4.4 1.4 1.1 0 .5-.3.9-.7 1l.9 1.9h-.9l-.8-1.7h-.4v1.7zm.8-2.4h.5c.3 0 .5-.2.5-.5s-.2-.5-.5-.5h-.5z" />
                   </svg>
                   Exporter PDF

@@ -52,8 +52,8 @@ export function useFileImport(editor, showToast) {
   /* ── PDF import via pdfjs-dist ─────────────────────────── */
   const importPdf = useCallback(async (file) => {
     const pdfjsLib = await import('pdfjs-dist');
-    // Disable worker for simplicity (runs in main thread, fine for small PDFs)
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+    // Point to the pdfjs-dist worker (required for PDF parsing)
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdfjs-dist/build/pdf.worker.mjs';
 
     const buffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: buffer, useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
@@ -141,7 +141,7 @@ export function useFileImport(editor, showToast) {
  * Rebuild logical lines from pdfjs text items.
  * Items have x,y coords; group by similar y → same line.
  */
-function rebuildLinesFromItems(items) {
+export function rebuildLinesFromItems(items) {
   if (!items.length) return [];
 
   const sorted = [...items].sort((a, b) => {
