@@ -690,7 +690,8 @@
         "Secretaire": "André Nathalie",
         "Region": "Région 5",
         "Zone": "Zone 51",
-        "typeClub": "LION"
+        "typeClub": "LION",
+        "clubLogoUrl": "/clubsIcons/MOKA-LION.jpg"
     },
     {
         "nomClub": "PAMPLEMOUSSES",
@@ -700,7 +701,8 @@
         "Secretaire": "Tran Van Marie Danielle Corine",
         "Region": "Région 5",
         "Zone": "Zone 51",
-        "typeClub": "LION"
+        "typeClub": "LION",
+        "clubLogoUrl": "/clubsIcons/PAMPLEMOUSSES-LION.jpeg"
     },
     {
         "nomClub": "PORT LOUIS DOYEN",
@@ -710,7 +712,8 @@
         "Secretaire": "Sreepaul Leckrajsing",
         "Region": "Région 5",
         "Zone": "Zone 51",
-        "typeClub": "LION"
+        "typeClub": "LION",
+        "clubLogoUrl": "/clubsIcons/PORT LOUIS DOYEN-LION.png"
     },
     {
         "nomClub": "RODRIGUES",
@@ -731,7 +734,8 @@
         "Secretaire": "Dawoo Shirley",
         "Region": "Région 5",
         "Zone": "Zone 51",
-        "typeClub": "LION"
+        "typeClub": "LION",
+        "clubLogoUrl": "/clubsIcons/GRAND BAIE-LION.jpg"
     },
     {
         "nomClub": "POINTE AUX CANONNIERS",
@@ -835,7 +839,8 @@
         "Secretaire": "De Robillard Dominique Francine",
         "Region": "Région 5",
         "Zone": "Zone 53",
-        "typeClub": "LION"
+        "typeClub": "LION",
+        "clubLogoUrl": "/clubsIcons/MAHEBOURG-LION.png"
     },
     {
         "nomClub": "QUATRE BORNES",
@@ -845,7 +850,8 @@
         "Secretaire": "Lochoo Giovanni",
         "Region": "Région 5",
         "Zone": "Zone 53",
-        "typeClub": "LION"
+        "typeClub": "LION",
+        "clubLogoUrl": "/clubsIcons/QUATRE BORNES-LION.jpg"
     },
     {
         "nomClub": "RIVIERE NOIRE",
@@ -866,7 +872,8 @@
         "Secretaire": "Alighan Bibi Noor-E-Naushin",
         "Region": "Région 5",
         "Zone": "Zone 53",
-        "typeClub": "LION"
+        "typeClub": "LION",
+        "clubLogoUrl": "/clubsIcons/SAVANNE-LION.jpg"
     },
     {
         "nomClub": "ANTANANARIVO SANTATRA NEW CENTURY",
@@ -1243,7 +1250,8 @@
         "vicePresident": "Ah Yu Tony",
         "Secretaire": "Mecklenburgh Ursula",
         "Region": "Région 5",
-        "Zone": "Zone 51"
+        "Zone": "Zone 51",
+        "clubLogoUrl": "/clubsIcons/ALBION LE PHARE-LION.jpg"
     },
     {
         "nomClub": "ANTANANARIVO SANTATRA NC",
@@ -1252,6 +1260,7 @@
         "vicePresident": "MAMITIANA Francia Léonce",
         "Secretaire": "RADY Soahary Noronantenaina",
         "Region": "Région 3",
-        "Zone": "Zone 31"
+        "Zone": "Zone 31",
+        "clubLogoUrl": "/clubsIcons/ANTANANARIVO SANTATRA NC.jpeg"
     }
 ]

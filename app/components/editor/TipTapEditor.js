@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -17,18 +17,30 @@ import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
 import Image from '@tiptap/extension-image';
 
-import { DropOverlay } from './DropOverlay';
+import { EditorToolbar } from './EditorToolbar';
 import { useFileImport } from './useFileImport';
+import { EditorHeader } from './EditorHeader';
 
 const COLORS = ['#1a3a52', '#2c5aa0', '#d4af37', '#c0392b', '#27ae60', '#2c2c2c', '#000000', '#e67e22'];
 const GRID_MAX = 8;
 
-export function TipTapEditor({ editorRef, content, onUpdate, showToast }) {
+export function TipTapEditor({
+  editorRef,
+  content,
+  typeFor,
+  clubType,
+  selectedClub,
+  onUpdate,
+  showToast,
+  toolbarHidden,
+  onToggleHide,
+  onImportingChange,
+  hideToolbar = false,
+}) {
   const [floatingBar, setFloatingBar] = useState(null);
   const [showTableGrid, setShowTableGrid] = useState(false);
   const [gridHover, setGridHover] = useState({ r: 0, c: 0 });
-  const [isImporting, setIsImporting] = useState(false);
-  const containerRef = useRef(null);
+  const editorWrapRef = useRef(null);
   const barRef = useRef(null);
   const gridRef = useRef(null);
 
@@ -54,7 +66,7 @@ export function TipTapEditor({ editorRef, content, onUpdate, showToast }) {
         class: 'tiptap px-[120px] pb-[70px] text-[26px] leading-snug text-slate-950 focus:outline-none',
       },
       handleDOMEvents: {
-        contextmenu: (view, event) => {
+        contextmenu: (_view, event) => {
           event.preventDefault();
           setFloatingBar({ x: event.clientX, y: event.clientY, mode: 'context' });
           return true;
@@ -66,22 +78,25 @@ export function TipTapEditor({ editorRef, content, onUpdate, showToast }) {
     },
   });
 
+  const { isImporting, importFile } = useFileImport(editor, showToast, { replace: true });
+
   useEffect(() => {
     if (editorRef) editorRef.current = editor;
   }, [editor, editorRef]);
 
-  // Sync editor content when switching notes (external content change)
+  useEffect(() => {
+    onImportingChange?.(isImporting);
+  }, [isImporting, onImportingChange]);
+
   const prevContentRef = useRef(content);
   useEffect(() => {
     if (!editor) return;
-    // Only update if content changed externally (not from user typing)
     if (content !== prevContentRef.current && content !== editor.getHTML()) {
       editor.commands.setContent(content || '', false);
     }
     prevContentRef.current = content;
   }, [content, editor]);
 
-  // Show floating bar on text selection
   useEffect(() => {
     if (!editor) return;
     const handleMouseUp = () => {
@@ -104,7 +119,6 @@ export function TipTapEditor({ editorRef, content, onUpdate, showToast }) {
     };
   }, [editor]);
 
-  // Close floating bar on outside click
   useEffect(() => {
     if (!floatingBar) return;
     const close = (e) => {
@@ -116,75 +130,6 @@ export function TipTapEditor({ editorRef, content, onUpdate, showToast }) {
     window.addEventListener('mousedown', close);
     return () => window.removeEventListener('mousedown', close);
   }, [floatingBar]);
-
-  const importFile = useCallback(async (file) => {
-    if (!editor) return;
-    setIsImporting(true);
-    try {
-      const name = file.name.toLowerCase();
-      if (name.endsWith('.docx')) {
-        const buffer = await file.arrayBuffer();
-        const result = await mammoth.convertToHtml({ arrayBuffer: buffer });
-        const html = result.value || '';
-        if (html.trim()) {
-          editor.chain().focus().setContent(html).run();
-        } else {
-          showToast?.('Le document est vide');
-        }
-      } else if (name.endsWith('.pdf')) {
-        const pdfjsLib = await import('pdfjs-dist');
-        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdfjs-dist/build/pdf.worker.mjs';
-        const buffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: buffer, useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
-        const totalPages = pdf.numPages;
-        const paragraphs = [];
-
-        for (let i = 1; i <= totalPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          const lines = rebuildLinesFromItems(textContent.items);
-
-          if (totalPages > 1) {
-            paragraphs.push(`<p style="font-weight:bold;color:#173d68;">— Page ${i} —</p>`);
-          }
-
-          for (const line of lines) {
-            if (line.trim()) {
-              paragraphs.push(`<p>${line}</p>`);
-            }
-          }
-        }
-
-        const html = paragraphs.join('');
-        if (html.trim()) {
-          editor.chain().focus().setContent(html).run();
-        } else {
-          showToast?.('Le PDF ne contient pas de texte extractible');
-        }
-      } else if (name.endsWith('.txt')) {
-        const text = await file.text();
-        const html = text.split(/\n\n+/).map((p) => `<p>${escapeHtml(p.replace(/\n/g, ' '))}</p>`).join('');
-        editor.chain().focus().setContent(html).run();
-      } else {
-        showToast?.('Format non supporté (.docx, .pdf, .txt)');
-      }
-    } catch (err) {
-      console.error('Import error:', err);
-      showToast?.("Erreur lors de l'import du fichier");
-    } finally {
-      setIsImporting(false);
-    }
-  }, [editor, showToast]);
-
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current = 0;
-    setIsDragging(false);
-
-    const file = e.dataTransfer?.files?.[0];
-    if (file) importFile(file);
-  }, [importFile]);
 
   if (!editor) return null;
 
@@ -198,7 +143,6 @@ export function TipTapEditor({ editorRef, content, onUpdate, showToast }) {
     setFloatingBar(null);
   };
 
-  /* ── Floating bar actions ──────────────────────────────── */
   const barActions = [
     { type: 'reset', label: 'Normal', action: () => run(() => editor.chain().focus().setParagraph().unsetAllMarks().run()), active: !isActive('bold') && !isActive('italic') && !isActive('heading') },
     { type: 'sep' },
@@ -218,57 +162,89 @@ export function TipTapEditor({ editorRef, content, onUpdate, showToast }) {
   ];
 
   return (
-    <div ref={containerRef} className="relative">
-      <input id="editor-file-input" type="file" accept=".docx,.txt,.pdf" className="hidden"
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) importFile(f); e.target.value = ''; }} />
+    <div ref={editorWrapRef} className={`relative ${hideToolbar ? '' : 'border-t border-slate-200/80'}`}>
+      <input
+        id="editor-file-input"
+        type="file"
+        accept=".docx,.txt,.pdf"
+        className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) importFile(f); e.target.value = ''; }}
+      />
 
+      {!hideToolbar && (
+        <EditorToolbar
+          editorRef={editorRef}
+          showToast={showToast}
+          hidden={toolbarHidden}
+          onToggleHide={onToggleHide}
+        />
+      )}
+      {typeFor === 'editor' && clubType && selectedClub && (
+        <EditorHeader clubType={clubType} selectedClub={selectedClub} />
+      )}
       <EditorContent editor={editor} />
 
-      {/* ── Unified floating toolbar ────────────────────── */}
       {floatingBar && createPortal(
-        <div ref={barRef} className="animate-context-menu fixed z-[9999] flex items-center gap-1 rounded-lg bg-slate-900 p-1.5 shadow-xl"
-          style={{ left: `${floatingBar.x}px`, top: `${floatingBar.y}px`, transform: 'translate(-50%, -100%)' }}>
-
+        <div
+          ref={barRef}
+          className="animate-context-menu fixed z-[9999] flex items-center gap-1 rounded-lg bg-slate-900 p-1.5 shadow-xl"
+          style={{ left: `${floatingBar.x}px`, top: `${floatingBar.y}px`, transform: 'translate(-50%, -100%)' }}
+        >
           {barActions.map((item, i) => {
             if (item.type === 'sep') return <div key={`s${i}`} className="mx-0.5 h-5 w-px bg-slate-600" />;
-            if (item.type === 'reset') return (
-              <button key="reset" type="button"
-                onClick={() => { item.action(); setFloatingBar(null); }}
-                className={`flex h-7 items-center rounded-md px-2 text-xs font-semibold transition ${item.active ? 'bg-slate-700 text-white' : 'text-slate-300 hover:bg-slate-700'}`}
-                title="Texte normal">¶</button>
-            );
+            if (item.type === 'reset') {
+              return (
+                <button
+                  key="reset"
+                  type="button"
+                  onClick={() => { item.action(); setFloatingBar(null); }}
+                  className={`flex h-7 items-center rounded-md px-2 text-xs font-semibold transition ${item.active ? 'bg-slate-700 text-white' : 'text-slate-300 hover:bg-slate-700'}`}
+                  title="Texte normal"
+                >
+                  ¶
+                </button>
+              );
+            }
             return (
-              <button key={item.label} type="button"
+              <button
+                key={item.label}
+                type="button"
                 onClick={() => { item.action(); setFloatingBar(null); }}
                 className={`flex h-7 w-7 items-center justify-center rounded-md text-xs font-semibold transition ${item.active ? 'bg-[#2c5aa0] text-white' : 'text-slate-300 hover:bg-slate-700'} ${item.cls || ''}`}
-                title={item.label}>{item.label}</button>
+                title={item.label}
+              >
+                {item.label}
+              </button>
             );
           })}
 
-          {/* Color dots */}
           <div className="mx-0.5 h-5 w-px bg-slate-600" />
           <div className="flex items-center gap-0.5">
             {COLORS.slice(0, 5).map((c) => (
-              <button key={c} type="button"
+              <button
+                key={c}
+                type="button"
                 onClick={() => { run(() => editor.chain().focus().setColor(c).run()); setFloatingBar(null); }}
                 className="h-3.5 w-3.5 rounded-full border border-slate-500 transition hover:scale-125"
-                style={{ backgroundColor: c }} title={c} />
+                style={{ backgroundColor: c }}
+                title={c}
+              />
             ))}
           </div>
 
-          {/* Table insert */}
           <div className="mx-0.5 h-5 w-px bg-slate-600" />
           <div className="relative">
-            <button type="button"
+            <button
+              type="button"
               onClick={() => setShowTableGrid(!showTableGrid)}
               className="flex h-7 w-7 items-center justify-center rounded-md text-xs text-slate-300 transition hover:bg-slate-700"
-              title="Insérer un tableau">
+              title="Insérer un tableau"
+            >
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M3 15h18M9 3v18M15 3v18" />
               </svg>
             </button>
 
-            {/* Grid picker */}
             {showTableGrid && (
               <div ref={gridRef} className="absolute left-0 top-full z-50 mt-1 rounded-lg border border-slate-700 bg-slate-900 p-2 shadow-xl">
                 <p className="mb-1.5 text-[10px] text-slate-400">
@@ -280,11 +256,14 @@ export function TipTapEditor({ editorRef, content, onUpdate, showToast }) {
                     const c = (idx % GRID_MAX) + 1;
                     const highlighted = r <= gridHover.r && c <= gridHover.c && gridHover.r > 0;
                     return (
-                      <button key={idx} type="button"
+                      <button
+                        key={idx}
+                        type="button"
                         className={`h-4 w-4 rounded-sm border transition
                           ${highlighted ? 'border-[#2c5aa0] bg-[#2c5aa0]/40' : 'border-slate-600 bg-slate-800 hover:border-slate-400'}`}
                         onMouseEnter={() => setGridHover({ r, c })}
-                        onClick={() => insertTable(r, c)} />
+                        onClick={() => insertTable(r, c)}
+                      />
                     );
                   })}
                 </div>
@@ -292,7 +271,6 @@ export function TipTapEditor({ editorRef, content, onUpdate, showToast }) {
             )}
           </div>
 
-          {/* Context-aware table editing buttons */}
           {inTable && (
             <>
               <div className="mx-0.5 h-5 w-px bg-slate-600" />
@@ -314,52 +292,20 @@ export function TipTapEditor({ editorRef, content, onUpdate, showToast }) {
             </>
           )}
 
-          {/* Import */}
           <div className="mx-0.5 h-5 w-px bg-slate-600" />
-          <button type="button"
+          <button
+            type="button"
             onClick={() => { document.getElementById('editor-file-input')?.click(); setFloatingBar(null); }}
             className="flex h-7 w-7 items-center justify-center rounded-md text-xs text-slate-300 transition hover:bg-slate-700"
-            title="Importer">
-            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            title="Importer"
+          >
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+            </svg>
           </button>
         </div>,
         document.body,
       )}
     </div>
   );
-}
-
-function rebuildLinesFromItems(items) {
-  if (!items.length) return [];
-
-  const sorted = [...items].sort((a, b) => {
-    const dy = a.transform[5] - b.transform[5];
-    if (Math.abs(dy) > 2) return dy;
-    return a.transform[4] - b.transform[4];
-  });
-
-  const lines = [];
-  let currentLine = '';
-  let lastY = null;
-
-  for (const item of sorted) {
-    const y = Math.round(item.transform[5]);
-    if (lastY !== null && Math.abs(y - lastY) > 2) {
-      lines.push(currentLine);
-      currentLine = '';
-    }
-    currentLine += (currentLine && !currentLine.endsWith(' ') ? ' ' : '') + item.str;
-    lastY = y;
-  }
-  if (currentLine) lines.push(currentLine);
-
-  return lines;
-}
-
-function escapeHtml(text) {
-  return text
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
-    .replace(/"/g, '"');
 }

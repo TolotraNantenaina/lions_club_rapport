@@ -10,6 +10,7 @@
     "start": "next start -p 3009",
     "lint": "next lint",
     "logos:optimize": "node scripts/optimize-club-logos.mjs",
+    "logos:sync-urls": "node scripts/sync-club-logo-urls.mjs",
     "publish:build": "bash scripts/publish-build-branch.sh",
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",

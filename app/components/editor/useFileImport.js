@@ -4,40 +4,25 @@ import { useCallback, useRef, useState } from 'react';
 import mammoth from 'mammoth';
 
 /**
- * Handles drag-and-drop and file import for the TipTap editor.
- *
- * - .docx → mammoth.convertToHtml → semantic HTML injected at cursor
- * - .pdf  → pdfjs-dist getTextContent → reconstructed HTML paragraphs
- * - .txt  → raw text inserted as paragraphs
+ * Import a file into a TipTap editor (.docx, .pdf, .txt).
+ * @param {import('@tiptap/react').Editor} editor
+ * @param {File} file
+ * @param {(msg: string) => void} [showToast]
+ * @param {{ replace?: boolean }} [options] — replace: setContent vs insertContent
  */
-export function useFileImport(editor, showToast) {
-  const [isDragging, setIsDragging] = useState(false);
-  const dragCounter = useRef(0);
+export async function importFileToEditor(editor, file, showToast, { replace = false } = {}) {
+  if (!editor) return;
 
-  const handleDragEnter = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current++;
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dragCounter.current--;
-    if (dragCounter.current <= 0) {
-      dragCounter.current = 0;
-      setIsDragging(false);
+  const name = file.name.toLowerCase();
+  const applyHtml = (html) => {
+    if (replace) {
+      editor.chain().focus().setContent(html).run();
+    } else {
+      editor.chain().focus().insertContent(html).run();
     }
-  }, []);
+  };
 
-  const handleDragOver = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  /* ── DOCX import via mammoth ───────────────────────────── */
-  const importDocx = useCallback(async (file) => {
+  if (name.endsWith('.docx')) {
     const buffer = await file.arrayBuffer();
     const result = await mammoth.convertToHtml({ arrayBuffer: buffer });
     const html = result.value || '';
@@ -45,14 +30,10 @@ export function useFileImport(editor, showToast) {
       showToast?.('Le document est vide');
       return;
     }
-    editor.chain().focus().insertContent(html).run();
+    applyHtml(html);
     showToast?.('Document Word importé');
-  }, [editor, showToast]);
-
-  /* ── PDF import via pdfjs-dist ─────────────────────────── */
-  const importPdf = useCallback(async (file) => {
+  } else if (name.endsWith('.pdf')) {
     const pdfjsLib = await import('pdfjs-dist');
-    // Point to the pdfjs-dist worker (required for PDF parsing)
     pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdfjs-dist/build/pdf.worker.mjs';
 
     const buffer = await file.arrayBuffer();
@@ -81,39 +62,60 @@ export function useFileImport(editor, showToast) {
       showToast?.('Le PDF ne contient pas de texte extractible');
       return;
     }
-    editor.chain().focus().insertContent(html).run();
+    applyHtml(html);
     showToast?.(`PDF importé (${totalPages} page${totalPages > 1 ? 's' : ''})`);
-  }, [editor, showToast]);
-
-  /* ── TXT import ────────────────────────────────────────── */
-  const importTxt = useCallback(async (file) => {
+  } else if (name.endsWith('.txt')) {
     const text = await file.text();
     const html = text.split(/\n\n+/).map((p) => `<p>${escapeHtml(p.replace(/\n/g, ' '))}</p>`).join('');
-    editor.chain().focus().insertContent(html).run();
+    applyHtml(html);
     showToast?.('Fichier texte importé');
-  }, [editor, showToast]);
+  } else {
+    showToast?.('Format non supporté (.docx, .pdf, .txt)');
+  }
+}
 
-  /* ── Main import dispatcher ────────────────────────────── */
+/**
+ * Handles drag-and-drop and file import for the TipTap editor.
+ */
+export function useFileImport(editor, showToast, { replace = false } = {}) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const dragCounter = useRef(0);
+
+  const handleDragEnter = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current <= 0) {
+      dragCounter.current = 0;
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
   const importFile = useCallback(async (file) => {
     if (!editor) return;
-
-    const name = file.name.toLowerCase();
-
+    setIsImporting(true);
     try {
-      if (name.endsWith('.docx')) {
-        await importDocx(file);
-      } else if (name.endsWith('.pdf')) {
-        await importPdf(file);
-      } else if (name.endsWith('.txt')) {
-        await importTxt(file);
-      } else {
-        showToast?.('Format non supporté (.docx, .pdf, .txt)');
-      }
+      await importFileToEditor(editor, file, showToast, { replace });
     } catch (err) {
       console.error('Import error:', err);
       showToast?.("Erreur lors de l'import du fichier");
+    } finally {
+      setIsImporting(false);
     }
-  }, [editor, showToast, importDocx, importPdf, importTxt]);
+  }, [editor, showToast, replace]);
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
@@ -127,6 +129,7 @@ export function useFileImport(editor, showToast) {
 
   return {
     isDragging,
+    isImporting,
     handleDragEnter,
     handleDragLeave,
     handleDragOver,

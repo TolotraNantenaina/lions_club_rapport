@@ -5,15 +5,14 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useClubsData } from '../helpers/useClubsData';
 import { useEditeurNotes } from './useEditeurNotes';
 import Sidebar from './Sidebar';
-import { EditorHeader } from '../components/editor/EditorHeader';
 import { TipTapEditor } from '../components/editor/TipTapEditor';
+import { EditorToolbar } from '../components/editor/EditorToolbar';
 import { JpgDownloadModal } from '../components/JpgDownloadModal';
 import { ProcessingLoader } from '../components/processingLoader';
-import { EditorToolbar } from '../components/editor/EditorToolbar';
 import { CLUB_TYPE, filterClubsByTypeAndQuery, normalizeClubType } from '../../lib/clubSearchFilter';
 import { exportMultiPageJpg, exportMultiPagePdf, downloadSingleJpg } from './exportUtils';
 import { DropOverlay } from '../components/editor/DropOverlay';
-import { rebuildLinesFromItems, escapeHtml } from '../components/editor/useFileImport';
+import { importFileToEditor } from '../components/editor/useFileImport';
 
 export default function EditeurPage() {
   const { clubsData, clubsLoading, clubsError } = useClubsData();
@@ -28,60 +27,26 @@ export default function EditeurPage() {
   const [toast, setToast] = useState('');
   const [downloadModal, setDownloadModal] = useState(null);
   const [pdfExporting, setPdfExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [toolbarHidden, setToolbarHidden] = useState(false);
   const editorRef = useRef(null);
   const scaleContainerRef = useRef(null);
+  const zoomWrapperRef = useRef(null);
   const captureRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
+  const dragCounterRef = useRef(0);
 
-  const importPdfFromFile = async (file) => {
-    try {
-      const pdfjsLib = await import('pdfjs-dist');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdfjs-dist/build/pdf.worker.mjs';
-      const buffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: buffer, useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
-      const totalPages = pdf.numPages;
-      const paragraphs = [];
-
-      for (let i = 1; i <= totalPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const lines = rebuildLinesFromItems(textContent.items);
-
-        if (totalPages > 1) {
-          paragraphs.push(`<p style="font-weight:bold;color:#173d68;">— Page ${i} —</p>`);
-        }
-
-        for (const line of lines) {
-          if (line.trim()) {
-            paragraphs.push(`<p>${line}</p>`);
-          }
-        }
-      }
-
-      const html = paragraphs.join('');
-      if (html.trim()) {
-        editorRef.current?.chain().focus().setContent(html).run();
-      } else {
-        showToast?.('Le PDF ne contient pas de texte extractible');
-      }
-    } catch (err) {
-      console.error('Import error:', err);
-      showToast?.("Erreur lors de l'import du fichier");
-    }
-  };
-
-  /* ── Zoom directly on #rapport-capture ─────────────────── */
+  /* ── Zoom on report body only (toolbar stays sticky, unaffected) ─ */
   useEffect(() => {
     const container = scaleContainerRef.current;
-    const capture = captureRef.current;
-    if (!container || !capture) return;
+    const zoomWrapper = zoomWrapperRef.current;
+    if (!container || !zoomWrapper) return;
 
     const updateZoom = () => {
       const available = container.clientWidth;
       const ratio = available / 1240;
       const z = Math.min(1, Math.max(0.4, ratio));
-      capture.style.zoom = z;
+      zoomWrapper.style.zoom = z;
     };
 
     updateZoom();
@@ -187,6 +152,21 @@ export default function EditeurPage() {
     downloadSingleJpg(imageUrl, fileName);
   }, []);
 
+  const handleImportFile = useCallback(async (file) => {
+    const editor = editorRef.current;
+    if (!editor || !file) return;
+
+    setIsImporting(true);
+    try {
+      await importFileToEditor(editor, file, showToast, { replace: true });
+    } catch (err) {
+      console.error('Import error:', err);
+      showToast("Erreur lors de l'import du fichier");
+    } finally {
+      setIsImporting(false);
+    }
+  }, [showToast]);
+
   return (
     <main className="min-h-screen bg-transparent">
       {/* ── Sidebar ──────────────────────────────────────── */}
@@ -285,43 +265,78 @@ export default function EditeurPage() {
         </div>
 
         {/* ── Editor card ───────────────────────────────── */}
-        <section className={`overflow-hidden rounded-2xl bg-white/95 shadow-[0_20px_60px_rgba(0,0,0,0.12)] ${pdfExporting ? 'pointer-events-none select-none' : ''}`}>
-          <div ref={scaleContainerRef} className="overflow-hidden flex flex-col items-center justify-center">
-            <div
-              ref={captureRef}
-              id="rapport-capture"
-              className="bg-white text-black border border-gray-200/50 shadow-[0_20px_50px_rgba(0,0,0,0.3)] select-none"
-              onDragEnter={(e) => {
-                e.preventDefault();
-                setIsDragging(true);
-              }}
-              onDragLeave={(e) => {
-                e.preventDefault();
-                setIsDragging(false);
-              }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setIsDragging(true);
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                setIsDragging(false);
-                const file = e.dataTransfer?.files?.[0];
-                if (file) importPdfFromFile(file);
-              }}
-            >
-              <EditorToolbar editorRef={editorRef} showToast={showToast} hidden={toolbarHidden} onToggleHide={() => setToolbarHidden((v) => !v)} />
-              <EditorHeader clubType={clubType} selectedClub={selectedClub} />
-              <TipTapEditor
+        <section className={`rounded-2xl bg-white/95 shadow-[0_20px_60px_rgba(0,0,0,0.12)] ${pdfExporting || isImporting ? 'pointer-events-none select-none' : ''}`}>
+          <div
+            ref={scaleContainerRef}
+            className="relative flex w-full flex-col items-center"
+          >
+            {isImporting && (
+              <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/85 backdrop-blur-[2px]">
+                <ProcessingLoader label="Import du document…" color="text-slate-900" />
+              </div>
+            )}
+
+            {/* Sticky toolbar — outside zoom & #rapport-capture (excluded from export) */}
+            <div className="sticky top-0 z-30 w-full max-w-[1240px] border border-b-0 border-gray-200/50 bg-slate-50 shadow-sm">
+              <EditorToolbar
                 editorRef={editorRef}
-                content={activeNote?.html || ''}
-                onUpdate={handleEditorUpdate}
                 showToast={showToast}
+                hidden={toolbarHidden}
+                onToggleHide={() => setToolbarHidden((v) => !v)}
+                sticky={false}
               />
-              <DropOverlay visible={isDragging} />
+            </div>
+
+            <div ref={zoomWrapperRef} className="w-full max-w-[1240px]">
+              <div
+                ref={captureRef}
+                id="rapport-capture"
+                className="w-[1240px] max-w-full bg-white text-black border border-t-0 border-gray-200/50 shadow-[0_20px_50px_rgba(0,0,0,0.3)] select-none"
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  dragCounterRef.current += 1;
+                  setIsDragging(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  dragCounterRef.current -= 1;
+                  if (dragCounterRef.current <= 0) {
+                    dragCounterRef.current = 0;
+                    setIsDragging(false);
+                  }
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  dragCounterRef.current = 0;
+                  setIsDragging(false);
+                  const file = e.dataTransfer?.files?.[0];
+                  if (file) handleImportFile(file);
+                }}
+              >
+                <TipTapEditor
+                  editorRef={editorRef}
+                  content={activeNote?.html || ''}
+                  clubType={clubType}
+                  selectedClub={selectedClub}
+                  typeFor="editor"
+                  hideToolbar
+                  onUpdate={handleEditorUpdate}
+                  showToast={showToast}
+                  toolbarHidden={toolbarHidden}
+                  onToggleHide={() => setToolbarHidden((v) => !v)}
+                  onImportingChange={setIsImporting}
+                />
+                <DropOverlay visible={isDragging && !isImporting} />
+              </div>
             </div>
           </div>
-    
         </section>
       </div>
 

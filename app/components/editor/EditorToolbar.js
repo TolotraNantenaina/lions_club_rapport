@@ -9,7 +9,7 @@ const GRID_MAX = 8;
  * Fixed formatting toolbar rendered inside the capture zone.
  * Reads editor instance from the shared editorRef.
  */
-export function EditorToolbar({ editorRef, showToast, fileInputId = 'editor-file-input', hidden, onToggleHide }) {
+export function EditorToolbar({ editorRef, showToast, fileInputId = 'editor-file-input', hidden, onToggleHide, sticky = true }) {
   const [editor, setEditor] = useState(null);
   const [showColors, setShowColors] = useState(false);
   const [showTableGrid, setShowTableGrid] = useState(false);
@@ -58,7 +58,7 @@ export function EditorToolbar({ editorRef, showToast, fileInputId = 'editor-file
   };
 
   return (
-    <div className="sticky top-0 z-20 flex flex-wrap items-center gap-1 border-t border-slate-200 bg-slate-50 px-3 pt-2 pb-2 rounded-t-lg">
+    <div className={`${sticky ? 'sticky top-0 z-20 rounded-t-lg border-t border-slate-200' : ''} flex flex-wrap items-center gap-1 bg-slate-50 px-3 pt-2 pb-2`}>
       {hidden && (
         <button type="button" onClick={onToggleHide} title="Afficher la barre d'outils"
           className="flex h-7 items-center gap-1 rounded-md bg-slate-200 px-2 text-[11px] text-slate-600 hover:bg-slate-300 transition">
