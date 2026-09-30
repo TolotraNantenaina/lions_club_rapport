@@ -14,6 +14,9 @@ import {
   downloadSingleJpg,
   generatePreviewImagesFromFormData,
 } from './exportUtils';
+import { exportMultiPageWord } from './exportWord';
+import { getCompteRenduPageSubtitle } from '../../lib/reunionTypes';
+import { validateTreasuryCurrencyForExport } from '../../lib/treasuryCurrency';
 
 /**
  * CR Version 1 — Page principale.
@@ -33,6 +36,9 @@ export default function CrVersion1Page() {
   const { clubsData, clubsLoading, clubsError } = useClubsData();
   const [downloadModal, setDownloadModal] = useState(null);
   const [pdfExporting, setPdfExporting] = useState(false);
+  const [wordExporting, setWordExporting] = useState(false);
+
+  const pageSubtitle = getCompteRenduPageSubtitle(formData.reunionType);
 
   /* ── Derived state ─────────────────────────────────────── */
   const isEmpty = apercuUrls.length === 0;
@@ -66,8 +72,18 @@ export default function CrVersion1Page() {
     }
   }, [storageReset, showToast]);
 
+  const guardExport = useCallback(() => {
+    const check = validateTreasuryCurrencyForExport(formData);
+    if (!check.ok) {
+      showToast(check.message);
+      return false;
+    }
+    return true;
+  }, [formData, showToast]);
+
   /* ── Aperçu ────────────────────────────────────────────── */
   const apercuJpg = useCallback(async () => {
+    if (!guardExport()) return;
     setApercuLoading(true);
     setApercuValide(false);
 
@@ -76,10 +92,11 @@ export default function CrVersion1Page() {
     setApercuValide(true);
     setCurrentPage(0);
     setApercuLoading(false);
-  }, [formData, showToast]);
+  }, [formData, showToast, guardExport]);
 
   /* ── Export JPG ─────────────────────────────────────────── */
   const exportJpg = useCallback(async () => {
+    if (!guardExport()) return;
     setDownloadModal({ baseName: '', images: [], isLoading: true });
 
     const { baseName, images } = await exportMultiPageJpg(formData, showToast);
@@ -90,11 +107,12 @@ export default function CrVersion1Page() {
     }
 
     setDownloadModal({ baseName, images, isLoading: false });
-  }, [formData, showToast]);
+  }, [formData, showToast, guardExport]);
 
   /* ── Export PDF ─────────────────────────────────────────── */
   const exportPdf = useCallback(async () => {
     if (pdfExporting) return;
+    if (!guardExport()) return;
     setPdfExporting(true);
     try {
       const ok = await exportMultiPagePdf(formData, showToast);
@@ -105,7 +123,23 @@ export default function CrVersion1Page() {
     } finally {
       setPdfExporting(false);
     }
-  }, [formData, pdfExporting, showToast]);
+  }, [formData, pdfExporting, showToast, guardExport]);
+
+  /* ── Export Word ────────────────────────────────────────── */
+  const exportWord = useCallback(async () => {
+    if (wordExporting) return;
+    if (!guardExport()) return;
+    setWordExporting(true);
+    try {
+      exportMultiPageWord(formData);
+      showToast('Document Word téléchargé');
+    } catch (err) {
+      console.error(err);
+      showToast('❌ Erreur lors de la génération du Word');
+    } finally {
+      setWordExporting(false);
+    }
+  }, [formData, wordExporting, showToast, guardExport]);
 
   /* ── Don't render until localStorage is loaded ──────────── */
   if (!initialized) {
@@ -130,7 +164,7 @@ export default function CrVersion1Page() {
               <Image src="/ico_lions_club_transparent.png" alt="Logo Lions Club" width={55} height={55} className="mb-2 h-[55px] w-[55px]" />
               <h1 className="mb-2 text-[1.8rem] font-bold tracking-tight sm:text-[2.5rem]">Lions Club</h1>
             </div>
-            <p className="text-[1.1em]">Compte-Rendu de Réunion Statutaire — V1 TipTap</p>
+            <p className="text-[1.1em]">{pageSubtitle} — V1 TipTap</p>
           </div>
           <Link
             href="/"
@@ -145,7 +179,7 @@ export default function CrVersion1Page() {
       </div>
 
       {/* ═══ Formulaire (TipTap "Divers") ═══════════════════ */}
-      <div className={pdfExporting ? 'pointer-events-none select-none' : undefined}>
+      <div className={pdfExporting || wordExporting ? 'pointer-events-none select-none' : undefined}>
         <FormulaireV1
           data={formData}
           onChange={setFormData}
@@ -162,27 +196,35 @@ export default function CrVersion1Page() {
           <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto">
             <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
               <div className="grid gap-4 grid-cols-2">
-                <button type="button" onClick={apercuJpg} disabled={pdfExporting} className="btn-primary hover:scale-105 transition-all disabled:pointer-events-none disabled:opacity-60">
+                <button type="button" onClick={apercuJpg} disabled={pdfExporting || wordExporting} className="btn-primary hover:scale-105 transition-all disabled:pointer-events-none disabled:opacity-60">
                   📊 Aperçu du rapport
                 </button>
-                <button type="button" onClick={resetForm} disabled={pdfExporting} className="btn-reset hover:scale-105 transition-all disabled:pointer-events-none disabled:opacity-60">
+                <button type="button" onClick={resetForm} disabled={pdfExporting || wordExporting} className="btn-reset hover:scale-105 transition-all disabled:pointer-events-none disabled:opacity-60">
                   🔄 Réinitialiser
                 </button>
               </div>
-              <div className="grid gap-4 grid-cols-2">
-                <button type="button" onClick={exportJpg} disabled={pdfExporting} className="btn-secondary hover:scale-105 transition-all disabled:pointer-events-none disabled:opacity-60">
+              <div className="grid gap-4 grid-cols-1 min-[640px]:grid-cols-3">
+                <button type="button" onClick={exportJpg} disabled={pdfExporting || wordExporting} className="btn-secondary hover:scale-105 transition-all disabled:pointer-events-none disabled:opacity-60">
                   📸 Exporter JPG
                 </button>
                 <button
                   type="button"
                   onClick={exportPdf}
-                  disabled={pdfExporting}
+                  disabled={pdfExporting || wordExporting}
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#7a1f2b] px-[1.25rem] py-[0.95rem] font-bold text-white shadow-lg shadow-[#7a1f2b]/30 transition-all hover:scale-105 hover:bg-[#952636] hover:shadow-xl active:scale-95 disabled:pointer-events-none disabled:opacity-60"
                 >
                   <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="#d4af37">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm1 7V3.5L19.5 9zM8.5 17.5v-4H10c.8 0 1.3.4 1.3 1.1 0 .7-.5 1.1-1.3 1.1H9.3v1.8zm.8-2.4h.6c.3 0 .5-.2.5-.5s-.2-.5-.5-.5h-.6zm3 2.4v-4h1.1c1.1 0 1.8.6 1.8 2s-.7 2-1.8 2zm.8-1.6h.3c.5 0 .9-.3.9-1.1s-.4-1.1-.9-1.1h-.3zm2.6 1.6v-4H17c.9 0 1.4.4 1.4 1.1 0 .5-.3.9-.7 1l.9 1.9h-.9l-.8-1.7h-.4v1.7zm.8-2.4h.5c.3 0 .5-.2.5-.5s-.2-.5-.5-.5h-.5z" />
                   </svg>
                   Exporter PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={exportWord}
+                  disabled={pdfExporting || wordExporting}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1a3a52] px-[1.25rem] py-[0.95rem] font-bold text-white shadow-lg shadow-[#1a3a52]/30 transition-all hover:scale-105 hover:bg-[#2c5aa0] hover:shadow-xl active:scale-95 disabled:pointer-events-none disabled:opacity-60"
+                >
+                  📄 Exporter Word
                 </button>
               </div>
             </section>
@@ -200,7 +242,7 @@ export default function CrVersion1Page() {
                 <div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 ${isEmpty ? 'opacity-100' : 'opacity-0 pointer-events-none'} light-bg`}>
                   <div className="text-center mb-5">
                     <h2 className="text-2xl font-bold text-primary">LIONS CLUB</h2>
-                    <p className="text-sm text-muted-foreground text-center text-accent">Compte-Rendu de Réunion Statutaire</p>
+                    <p className="text-sm text-muted-foreground text-center text-accent">{pageSubtitle}</p>
                   </div>
                   <div className="w-12 h-12 rounded-2xl bg-border/60 flex items-center justify-center">
                     <svg className="w-6 h-6 text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">

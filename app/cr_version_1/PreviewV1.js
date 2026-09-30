@@ -1,6 +1,8 @@
 'use client';
 
 import { formatDate } from '../helpers/formatDate';
+import { getReunionDevelopedLabel, isVisiteLibreReunion } from '../../lib/reunionTypes';
+import { getCurrencySymbol } from '../../lib/treasuryCurrency';
 
 /* ═══ A4 Page constants ═══════════════════════════════════ */
 export const PAGE_WIDTH = 1240;
@@ -174,12 +176,50 @@ function buildGroupedSection(title, groups) {
   ];
 }
 
+function formatTreasuryValue(value, currencyCode) {
+  const text = valueOrDash(value);
+  if (!value || text === 'Non renseigné') return text;
+  const symbol = getCurrencySymbol(currencyCode);
+  return symbol ? `${text} ${symbol}` : text;
+}
+
+function getVisiteLibrePreviewBlocks(data) {
+  const titleDate = data.meetingDate ? formatDate(data.meetingDate) : 'date non renseignée';
+  const html = data.visiteLibreHtml || '';
+  const hasHtml = html && html !== '<p></p>' && html.trim() !== '';
+
+  return [
+    {
+      type: 'intro',
+      developedReunion: getReunionDevelopedLabel(data.reunionType),
+      titleDate,
+      location: valueOrDash(data.location),
+      participants: '',
+      startTime: formatTime(data.startTime) || 'Non renseigné',
+      hideParticipants: true,
+    },
+    ...(hasHtml
+      ? [{ type: 'htmlBlock', html }]
+      : [{ type: 'empty' }]),
+    {
+      type: 'footer',
+      endTime: formatTime(data.endTime) || 'Non renseigné',
+      meetingDate: data.meetingDate ? new Date(data.meetingDate).toLocaleDateString('fr-FR') : 'Non renseigné',
+    },
+  ];
+}
+
 /**
  * Build ordered blocks from form data.
  * The "Divers" TipTap HTML is emitted as an htmlBlock.
  */
 export function getPreviewCRBlocks(data) {
+  if (isVisiteLibreReunion(data.reunionType)) {
+    return getVisiteLibrePreviewBlocks(data);
+  }
+
   const titleDate = data.meetingDate ? formatDate(data.meetingDate) : 'date non renseignée';
+  const currency = data.treasuryCurrency;
   const participants = [
     `${valueOrDash(data.memberPresent)} présents`,
     `${valueOrDash(data.memberExcused)} excusés`,
@@ -188,11 +228,11 @@ export function getPreviewCRBlocks(data) {
     `${valueOrDash(data.memberTotal)} membres au total`,
   ].join(' - ');
   const treasuryItems = [
-    ['Solde compte administratif', data.adminBalance],
-    ['Solde compte œuvre', data.worksBalance],
-    ['Cotisation Siège', data.headQuartersFees],
-    ['Cotisation District', data.districtFees],
-    ['Cotisation Région', data.regionFees],
+    ['Solde compte administratif', formatTreasuryValue(data.adminBalance, currency)],
+    ['Solde compte œuvre', formatTreasuryValue(data.worksBalance, currency)],
+    ['Cotisation Siège', formatTreasuryValue(data.headQuartersFees, currency)],
+    ['Cotisation District', formatTreasuryValue(data.districtFees, currency)],
+    ['Cotisation Région', formatTreasuryValue(data.regionFees, currency)],
   ];
 
   const miscellaneousHtml = data.miscellaneous || '';
@@ -201,6 +241,7 @@ export function getPreviewCRBlocks(data) {
   return [
     {
       type: 'intro',
+      developedReunion: getReunionDevelopedLabel(data.reunionType),
       reunionType: valueOrDash(data.reunionType),
       titleDate,
       location: valueOrDash(data.location),
@@ -209,7 +250,7 @@ export function getPreviewCRBlocks(data) {
     },
     ...buildTextSection('1/ Mot éventuel du président', data.presidentWord),
     ...buildTextSection("2/ Rappel de l'ordre du jour", data.orderOfDay),
-    ...buildTextSection('3/ Approbation du compte-rendu de réunion statutaire', data.approvalPV),
+    ...buildTextSection('3/ Approbation du compte-rendu', data.approvalPV),
     ...buildGroupedSection('4/ Secrétariat', [
       { title: 'Courriers reçus', value: data.receivedMails },
       { title: 'Courriers envoyés', value: data.sentMails },
@@ -222,11 +263,13 @@ export function getPreviewCRBlocks(data) {
       { title: 'POINT EML (Formation)', value: data.pointEML },
       { title: 'POINT EMS (Service-Oeuvres)', value: data.pointEMS },
       { title: 'Actions en cours', value: data.ongoingActions },
-      { title: 'Point LCIF', value: data.pointLCIF },
+      { title: 'Point Marketing et Communication', value: data.marketing },
     ]),
-    { type: 'sectionTitle', title: '7/ Divers et tour de table' },
-    { type: 'subTitle', title: 'Marketing et communication' },
-    ...buildBulletBlocks(data.marketing),
+    { type: 'sectionTitle', title: '7/ Autres points' },
+    { type: 'subTitle', title: 'Point LCIF' },
+    ...buildBulletBlocks(data.pointLCIF),
+    { type: 'subTitle', title: 'Interventions LEO' },
+    ...buildBulletBlocks(data.interventionsLeo),
     { type: 'subTitle', title: 'Programme du mois' },
     ...buildBulletBlocks(data.monthProgram),
     ...(hasMiscHtml
@@ -250,18 +293,23 @@ export function getPreviewCRBlocks(data) {
 
 function CRBlock({ block, president, vicePresident, secretary, location }) {
   if (block.type === 'intro') {
+    const reunionLabel = block.developedReunion || block.reunionType || 'Réunion Statutaire';
     return (
       <>
         <div style={{ marginBottom: '12px', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>Compte rendu de la réunion statutaire</h2>
-          <p style={{ fontSize: '20px', fontWeight: 700, textTransform: 'uppercase', margin: '4px 0 0' }}>{block.reunionType} du {block.titleDate}</p>
+          <h2 style={{ fontSize: '22px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>
+            Compte-Rendu de {reunionLabel}
+          </h2>
+          <p style={{ fontSize: '20px', fontWeight: 700, textTransform: 'uppercase', margin: '4px 0 0' }}>du {block.titleDate}</p>
           <p style={{ marginTop: '6px', fontSize: '18px', fontWeight: 600 }}>
             Lieu : {location ? location.charAt(0).toUpperCase() + location.slice(1) : '<--Lieu non renseigné -->'}
           </p>
         </div>
-        <p style={{ marginBottom: '8px', fontSize: '20px' }}>
-          <span style={{ fontWeight: 900 }}>Présents :</span> {block.participants}
-        </p>
+        {!block.hideParticipants && (
+          <p style={{ marginBottom: '8px', fontSize: '20px' }}>
+            <span style={{ fontWeight: 900 }}>Présents :</span> {block.participants}
+          </p>
+        )}
         <p style={{ marginBottom: '12px', fontSize: '20px', fontWeight: 700 }}>Début de la réunion : {block.startTime}</p>
       </>
     );

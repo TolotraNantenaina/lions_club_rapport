@@ -4,6 +4,7 @@ import { FormField } from "./formField";
 import { TextareaField } from "./textareaField";
 import { formatDate } from "../helpers/formatDate";
 import { CLUB_TYPE, filterClubsByTypeAndQuery, normalizeClubType } from "../../lib/clubSearchFilter";
+import { REUNION_OPTIONS_STANDARD } from "../../lib/reunionTypes";
 
 export default function Formulaire({ data, onChange, clubsData = [], clubsLoading = false, clubsError = '' }) {
     const [formData, setFormData] = useState(data);
@@ -13,7 +14,7 @@ export default function Formulaire({ data, onChange, clubsData = [], clubsLoadin
     const [isReunionDropdownOpen, setIsReunionDropdownOpen] = useState(false);
     const clubSearchInputRef = useRef(null);
     const memberFields = ['memberPresent', 'memberExcused', 'memberAbsent'];
-    const reunionOptions = ['', 'AG/RS', 'AG/RS EXTRA', 'AG/RS MIXTE', 'CA', 'CA EXTRA', 'AUTRE'];
+    const reunionOptions = ['', ...REUNION_OPTIONS_STANDARD];
     const filteredClubOptions = useMemo(
         () => filterClubsByTypeAndQuery(clubsData, selectedClubType, clubSearch),
         [clubsData, selectedClubType, clubSearch],

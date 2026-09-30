@@ -5,7 +5,10 @@ import { SectionHeading } from '../components/sectionHeading';
 import { FormField } from '../components/formField';
 import { TextareaField } from '../components/textareaField';
 import { CLUB_TYPE, filterClubsByTypeAndQuery, normalizeClubType } from '../../lib/clubSearchFilter';
+import { REUNION_OPTIONS, isVisiteLibreReunion } from '../../lib/reunionTypes';
+import { TREASURY_CURRENCIES, getCurrencySymbol } from '../../lib/treasuryCurrency';
 import { DiversEditor } from './DiversEditor';
+import { VisiteLibreEditor } from './VisiteLibreEditor';
 
 /**
  * Formulaire V1 — identical to the original form, except the "Divers"
@@ -34,7 +37,9 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
     { field: 'memberAbsent', label: 'Membre absent' },
     { field: 'guests', label: 'Invité' },
   ];
-  const reunionOptions = ['', 'AG/RS', 'AG/RS EXTRA', 'AG/RS MIXTE', 'CA', 'CA EXTRA', 'AUTRE'];
+  const reunionOptions = ['', ...REUNION_OPTIONS];
+  const isVisiteLibreMode = isVisiteLibreReunion(formData.reunionType);
+  const currencySymbol = getCurrencySymbol(formData.treasuryCurrency);
 
   const filteredClubOptions = useMemo(
     () => filterClubsByTypeAndQuery(clubsData, selectedClubType, clubSearch),
@@ -102,6 +107,134 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
     updateField('reunionType', reunionType);
   };
 
+  const renderMoneyInput = (id, value, onChangeValue, placeholder = '0.00') => (
+    <div className="relative">
+      <input
+        id={id}
+        type="number"
+        step="0.01"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChangeValue(e.target.value)}
+        className="form-input pt-[12px] pr-12"
+      />
+      {currencySymbol && (
+        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-500">
+          {currencySymbol}
+        </span>
+      )}
+    </div>
+  );
+
+  const renderTextMoneyInput = (id, value, onChangeValue, placeholder) => (
+    <div className="relative">
+      <input
+        id={id}
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChangeValue(e.target.value)}
+        className="form-input pt-[12px] pr-12"
+      />
+      {currencySymbol && (
+        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-500">
+          {currencySymbol}
+        </span>
+      )}
+    </div>
+  );
+
+  const renderMeetingInfoSection = () => (
+    <div className={['grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto', isReunionDropdownOpen ? 'relative z-50' : ''].join(' ')}>
+      <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+        <SectionHeading title="📋 Informations de la réunion" />
+        <div className="grid gap-6 sm:grid-cols-1">
+          <FormField label="Club" htmlFor="club-search-input">
+            <div className="relative">
+              <input
+                id="club-search-input"
+                ref={clubSearchInputRef}
+                type="text"
+                placeholder="Rechercher un club..."
+                value={clubSearch}
+                autoComplete="off"
+                onChange={(e) => { setClubSearch(e.target.value); setIsClubDropdownOpen(true); }}
+                onFocus={() => setIsClubDropdownOpen(true)}
+                onBlur={() => window.setTimeout(() => setIsClubDropdownOpen(false), 120)}
+                className="form-input bg-light-grey pt-[12px] pr-[7.5rem]"
+              />
+              <fieldset className="absolute right-2 top-1/2 m-0 flex min-w-0 -translate-y-1/2 items-center rounded-[10px] border-0 bg-[#d4af37] p-1">
+                <legend className="absolute h-px w-px overflow-hidden whitespace-nowrap border-0 p-0 [clip:rect(0,0,0,0)]">Type de club</legend>
+                <button type="button" aria-pressed={selectedClubType === CLUB_TYPE.LION}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={(event) => handleClubTypeChange(CLUB_TYPE.LION, event)}
+                  className={['rounded-[8px] px-3 py-1 text-sm font-semibold transition', selectedClubType === CLUB_TYPE.LION ? 'bg-accent text-white shadow-sm' : 'text-slate-800 hover:text-primary'].join(' ')}
+                >Lion</button>
+                <button type="button" aria-pressed={selectedClubType === CLUB_TYPE.LEO}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={(event) => handleClubTypeChange(CLUB_TYPE.LEO, event)}
+                  className={['rounded-[8px] px-3 py-1 text-sm font-semibold transition', selectedClubType === CLUB_TYPE.LEO ? 'bg-accent text-white shadow-sm' : 'text-slate-800 hover:text-primary'].join(' ')}
+                >Leo</button>
+              </fieldset>
+              {isClubDropdownOpen && (
+                <div className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-lg border-2 border-[var(--border)] bg-white shadow-[0_16px_35px_rgba(0,0,0,0.14)]">
+                  {renderClubDropdownContent()}
+                </div>
+              )}
+            </div>
+          </FormField>
+
+          <FormField label="Réunion" htmlFor="reunionType">
+            <div className={`relative ${isReunionDropdownOpen ? 'z-50' : ''}`}>
+              <input id="reunionType" type="text" value={formData.reunionType} placeholder="Sélectionner..." readOnly
+                onFocus={() => setIsReunionDropdownOpen(true)} onClick={() => setIsReunionDropdownOpen(true)}
+                onBlur={() => window.setTimeout(() => setIsReunionDropdownOpen(false), 120)}
+                className="form-input cursor-pointer bg-light-grey pt-[12px] pr-10" />
+              <button type="button" aria-label="Afficher la liste des types de réunion"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setIsReunionDropdownOpen((isOpen) => !isOpen)}
+                className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center text-slate-500 transition hover:text-primary">
+                <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4">
+                  <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="m6 8 4 4 4-4" />
+                </svg>
+              </button>
+              {isReunionDropdownOpen && (
+                <div className="absolute z-50 mt-2 max-h-64 w-full overflow-y-auto rounded-lg border-2 border-[var(--border)] bg-white shadow-[0_16px_35px_rgba(0,0,0,0.14)]">
+                  {reunionOptions.map((reunionType) => (
+                    <button key={reunionType || 'empty-reunion-type'} type="button"
+                      onMouseDown={(e) => e.preventDefault()} onClick={() => selectReunionType(reunionType)}
+                      className="block w-full h-[40px] px-4 py-3 text-left text-[0.95em] text-slate-800 transition hover:bg-[rgba(44,90,160,0.08)] hover:text-primary">
+                      {reunionType || 'Sélectionner...'}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </FormField>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-2">
+          <FormField label="Date de la réunion" htmlFor="meetingDate">
+            <input id="meetingDate" type="date" value={formData.meetingDate}
+              onChange={(e) => updateField('meetingDate', e.target.value)} className="form-input pt-[12px]" />
+          </FormField>
+          <FormField label="Lieu" htmlFor="location">
+            <input id="location" type="text" placeholder="Ex: Salle des conférences" value={formData.location}
+              onChange={(e) => updateField('location', e.target.value)} className="form-input pt-[12px]" />
+          </FormField>
+          <FormField label="Début de la réunion" htmlFor="startTime">
+            <input id="startTime" type="time" value={formData.startTime}
+              onChange={(e) => updateField('startTime', e.target.value)} className="form-input pt-[12px]" />
+          </FormField>
+          <FormField label="Fin de la réunion" htmlFor="endTime">
+            <input id="endTime" type="time" value={formData.endTime}
+              onChange={(e) => updateField('endTime', e.target.value)} className="form-input pt-[12px]" />
+          </FormField>
+        </div>
+      </section>
+    </div>
+  );
+
   const renderClubDropdownContent = () => {
     if (clubsLoading) {
       return <p className="px-4 py-3 text-[0.95em] text-dark-grey">Chargement des clubs...</p>;
@@ -122,96 +255,19 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
     <div className="min-h-screen text-slate-900 pb-4 bg-transparent">
       <div className="mx-auto grid gap-8">
 
-        {/* ═══ Section: Informations de la réunion ═══════════ */}
-        <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto">
-          <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
-            <SectionHeading title="📋 Informations de la réunion" />
-            <div className="grid gap-6 sm:grid-cols-1">
-              <FormField label="Club" htmlFor="club-search-input">
-                <div className="relative">
-                  <input
-                    id="club-search-input"
-                    ref={clubSearchInputRef}
-                    type="text"
-                    placeholder="Rechercher un club..."
-                    value={clubSearch}
-                    autoComplete="off"
-                    onChange={(e) => { setClubSearch(e.target.value); setIsClubDropdownOpen(true); }}
-                    onFocus={() => setIsClubDropdownOpen(true)}
-                    onBlur={() => window.setTimeout(() => setIsClubDropdownOpen(false), 120)}
-                    className="form-input bg-light-grey pt-[12px] pr-[7.5rem]"
-                  />
-                  <fieldset className="absolute right-2 top-1/2 m-0 flex min-w-0 -translate-y-1/2 items-center rounded-[10px] border-0 bg-[#d4af37] p-1">
-                    <legend className="absolute h-px w-px overflow-hidden whitespace-nowrap border-0 p-0 [clip:rect(0,0,0,0)]">Type de club</legend>
-                    <button type="button" aria-pressed={selectedClubType === CLUB_TYPE.LION}
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={(event) => handleClubTypeChange(CLUB_TYPE.LION, event)}
-                      className={['rounded-[8px] px-3 py-1 text-sm font-semibold transition', selectedClubType === CLUB_TYPE.LION ? 'bg-accent text-white shadow-sm' : 'text-slate-800 hover:text-primary'].join(' ')}
-                    >Lion</button>
-                    <button type="button" aria-pressed={selectedClubType === CLUB_TYPE.LEO}
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={(event) => handleClubTypeChange(CLUB_TYPE.LEO, event)}
-                      className={['rounded-[8px] px-3 py-1 text-sm font-semibold transition', selectedClubType === CLUB_TYPE.LEO ? 'bg-accent text-white shadow-sm' : 'text-slate-800 hover:text-primary'].join(' ')}
-                    >Leo</button>
-                  </fieldset>
-                  {isClubDropdownOpen && (
-                    <div className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-lg border-2 border-[var(--border)] bg-white shadow-[0_16px_35px_rgba(0,0,0,0.14)]">
-                      {renderClubDropdownContent()}
-                    </div>
-                  )}
-                </div>
-              </FormField>
+        {renderMeetingInfoSection()}
 
-              <FormField label="Réunion" htmlFor="reunionType">
-                <div className="relative">
-                  <input id="reunionType" type="text" value={formData.reunionType} placeholder="Sélectionner..." readOnly
-                    onFocus={() => setIsReunionDropdownOpen(true)} onClick={() => setIsReunionDropdownOpen(true)}
-                    onBlur={() => window.setTimeout(() => setIsReunionDropdownOpen(false), 120)}
-                    className="form-input cursor-pointer bg-light-grey pt-[12px] pr-10" />
-                  <button type="button" aria-label="Afficher la liste des types de réunion"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => setIsReunionDropdownOpen((isOpen) => !isOpen)}
-                    className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center text-slate-500 transition hover:text-primary">
-                    <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4">
-                      <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="m6 8 4 4 4-4" />
-                    </svg>
-                  </button>
-                  {isReunionDropdownOpen && (
-                    <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-lg border-2 border-[var(--border)] bg-white shadow-[0_16px_35px_rgba(0,0,0,0.14)]">
-                      {reunionOptions.map((reunionType) => (
-                        <button key={reunionType || 'empty-reunion-type'} type="button"
-                          onMouseDown={(e) => e.preventDefault()} onClick={() => selectReunionType(reunionType)}
-                          className="block w-full h-[40px] px-4 py-3 text-left text-[0.95em] text-slate-800 transition hover:bg-[rgba(44,90,160,0.08)] hover:text-primary">
-                          {reunionType || 'Sélectionner...'}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </FormField>
-            </div>
+        {isVisiteLibreMode && (
+          <VisiteLibreEditor
+            formData={formData}
+            content={formData.visiteLibreHtml || ''}
+            onUpdate={(html) => updateField('visiteLibreHtml', html)}
+            showToast={showToast}
+          />
+        )}
 
-            <div className="grid gap-6 sm:grid-cols-2">
-              <FormField label="Date de la réunion" htmlFor="meetingDate">
-                <input id="meetingDate" type="date" value={formData.meetingDate}
-                  onChange={(e) => updateField('meetingDate', e.target.value)} className="form-input pt-[12px]" />
-              </FormField>
-              <FormField label="Lieu" htmlFor="location">
-                <input id="location" type="text" placeholder="Ex: Salle des conférences" value={formData.location}
-                  onChange={(e) => updateField('location', e.target.value)} className="form-input pt-[12px]" />
-              </FormField>
-              <FormField label="Début de la réunion" htmlFor="startTime">
-                <input id="startTime" type="time" value={formData.startTime}
-                  onChange={(e) => updateField('startTime', e.target.value)} className="form-input pt-[12px]" />
-              </FormField>
-              <FormField label="Fin de la réunion" htmlFor="endTime">
-                <input id="endTime" type="time" value={formData.endTime}
-                  onChange={(e) => updateField('endTime', e.target.value)} className="form-input pt-[12px]" />
-              </FormField>
-            </div>
-          </section>
-        </div>
-
+        {!isVisiteLibreMode && (
+          <>
         {/* ═══ Section: Participants ══════════════════════════ */}
         <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto">
           <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
@@ -236,7 +292,7 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
             <SectionHeading title="🎤 Interventions générales" />
             <TextareaField label="Mot éventuel du président" placeholder="Entrez le mot du président..." htmlFor="presidentWord" value={formData.presidentWord} onChange={(value) => updateField('presidentWord', value)} />
             <TextareaField label="Rappel de l'ordre du jour" placeholder="Rappel de l'ordre du jour..." htmlFor="orderOfDay" value={formData.orderOfDay} onChange={(value) => updateField('orderOfDay', value)} />
-            <TextareaField label="Approbation du compte-rendu de réunion statutaire" placeholder="Approbation du compte-rendu..." htmlFor="approvalPV" value={formData.approvalPV} onChange={(value) => updateField('approvalPV', value)} />
+            <TextareaField label="Approbation du compte-rendu" placeholder="Approbation du compte-rendu..." htmlFor="approvalPV" value={formData.approvalPV} onChange={(value) => updateField('approvalPV', value)} />
           </section>
         </div>
 
@@ -252,27 +308,42 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
         {/* ═══ Section: Trésorerie ════════════════════════════ */}
         <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto">
           <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
-            <SectionHeading title="💰 Trésorerie" />
+            <SectionHeading
+              title="💰 Trésorerie"
+              trailing={(
+                <div className="flex w-[250px] max-w-[250px] shrink-0 items-center gap-2 normal-case">
+                  <label htmlFor="treasuryCurrency" className="shrink-0 text-[0.75rem] font-semibold text-white">
+                    Devise
+                  </label>
+                  <select
+                    id="treasuryCurrency"
+                    value={formData.treasuryCurrency || ''}
+                    onChange={(e) => updateField('treasuryCurrency', e.target.value)}
+                    className="h-9 min-w-0 flex-1 rounded-md border border-white/25 bg-white px-2 text-[0.7rem] font-medium text-slate-900"
+                  >
+                    <option value="">Sélectionner…</option>
+                    {TREASURY_CURRENCIES.map((c) => (
+                      <option key={c.value} value={c.value}>{c.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            />
             <div className="grid gap-6 sm:grid-cols-2">
               <FormField label="Solde compte administratif" htmlFor="adminBalance">
-                <input id="adminBalance" type="number" step="0.01" placeholder="0.00" value={formData.adminBalance}
-                  onChange={(e) => updateField('adminBalance', e.target.value)} className="form-input pt-[12px]" />
+                {renderMoneyInput('adminBalance', formData.adminBalance, (v) => updateField('adminBalance', v))}
               </FormField>
               <FormField label="Solde compte œuvre" htmlFor="worksBalance">
-                <input id="worksBalance" type="number" step="0.01" placeholder="0.00" value={formData.worksBalance}
-                  onChange={(e) => updateField('worksBalance', e.target.value)} className="form-input pt-[12px]" />
+                {renderMoneyInput('worksBalance', formData.worksBalance, (v) => updateField('worksBalance', v))}
               </FormField>
               <FormField label="Cotisation Siège" htmlFor="headQuartersFees">
-                <input id="headQuartersFees" type="text" placeholder="Ex: 100€" value={formData.headQuartersFees}
-                  onChange={(e) => updateField('headQuartersFees', e.target.value)} className="form-input pt-[12px]" />
+                {renderTextMoneyInput('headQuartersFees', formData.headQuartersFees, (v) => updateField('headQuartersFees', v), 'Montant')}
               </FormField>
               <FormField label="Cotisation District" htmlFor="districtFees">
-                <input id="districtFees" type="text" placeholder="Ex: 50€" value={formData.districtFees}
-                  onChange={(e) => updateField('districtFees', e.target.value)} className="form-input pt-[12px]" />
+                {renderTextMoneyInput('districtFees', formData.districtFees, (v) => updateField('districtFees', v), 'Montant')}
               </FormField>
               <FormField label="Cotisation Région" htmlFor="regionFees">
-                <input id="regionFees" type="text" placeholder="Ex: 30€" value={formData.regionFees}
-                  onChange={(e) => updateField('regionFees', e.target.value)} className="form-input pt-[12px]" />
+                {renderTextMoneyInput('regionFees', formData.regionFees, (v) => updateField('regionFees', v), 'Montant')}
               </FormField>
             </div>
             <TextareaField label="Autres points sur la trésorerie" placeholder="Autres informations de trésorerie..." htmlFor="treasuryOther" value={formData.treasuryOther} onChange={(value) => updateField('treasuryOther', value)} />
@@ -287,7 +358,7 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
             <TextareaField label="POINT EML (Formation)" placeholder="Points sur la formation..." htmlFor="pointEML" value={formData.pointEML} onChange={(value) => updateField('pointEML', value)} />
             <TextareaField label="POINT EMS (Service-Oeuvres)" placeholder="Points sur le service-oeuvres..." htmlFor="pointEMS" value={formData.pointEMS} onChange={(value) => updateField('pointEMS', value)} />
             <TextareaField label="Point sur les actions en cours (EMS)" placeholder="Action actuelle en cours..." htmlFor="ongoingActions" value={formData.ongoingActions} onChange={(value) => updateField('ongoingActions', value)} />
-            <TextareaField label="Point LCIF" placeholder="Informations sur le LCIF..." htmlFor="pointLCIF" value={formData.pointLCIF} onChange={(value) => updateField('pointLCIF', value)} />
+            <TextareaField label="Point Marketing et Communication" placeholder="Informations marketing et communication..." htmlFor="marketing" value={formData.marketing} onChange={(value) => updateField('marketing', value)} />
           </section>
         </div>
 
@@ -295,7 +366,8 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
         <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto">
           <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
             <SectionHeading title="📢 Autres points" />
-            <TextareaField label="Point Marketing et Communication" placeholder="Informations marketing et communication..." htmlFor="marketing" value={formData.marketing} onChange={(value) => updateField('marketing', value)} />
+            <TextareaField label="Point LCIF" placeholder="Informations sur le LCIF..." htmlFor="pointLCIF" value={formData.pointLCIF} onChange={(value) => updateField('pointLCIF', value)} />
+            <TextareaField label="Interventions LEO" placeholder="Interventions LEO..." htmlFor="interventionsLeo" value={formData.interventionsLeo} onChange={(value) => updateField('interventionsLeo', value)} />
             <TextareaField label="Programme du mois" placeholder="Programme du mois..." htmlFor="monthProgram" value={formData.monthProgram} onChange={(value) => updateField('monthProgram', value)} />
 
             {/* ═══ CHAMP "DIVERS" — TipTap éditeur riche ═══════ */}
@@ -309,6 +381,8 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
             </label>
           </section>
         </div>
+          </>
+        )}
       </div>
     </div>
   );

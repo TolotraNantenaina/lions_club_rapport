@@ -30,6 +30,7 @@ export const initialData = {
     headQuartersFees: '',
     districtFees: '',
     regionFees: '',
+    treasuryCurrency: '',
     treasuryOther: '',
     pointEME: '',
     pointEML: '',
@@ -38,5 +39,7 @@ export const initialData = {
     pointLCIF: '',
     marketing: '',
     monthProgram: '',
+    interventionsLeo: '',
     miscellaneous: '',
+    visiteLibreHtml: '',
 };
