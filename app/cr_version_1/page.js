@@ -131,7 +131,7 @@ export default function CrVersion1Page() {
     if (!guardExport()) return;
     setWordExporting(true);
     try {
-      exportMultiPageWord(formData);
+      await exportMultiPageWord(formData);
       showToast('Document Word téléchargé');
     } catch (err) {
       console.error(err);
