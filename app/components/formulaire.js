@@ -5,6 +5,8 @@ import { TextareaField } from "./textareaField";
 import { formatDate } from "../helpers/formatDate";
 import { CLUB_TYPE, filterClubsByTypeAndQuery, normalizeClubType } from "../../lib/clubSearchFilter";
 import { REUNION_OPTIONS_STANDARD } from "../../lib/reunionTypes";
+import { useSyncClubFormFields } from "../helpers/useSyncClubFormFields";
+import { findClubInList, mapClubRecordToFormFields } from "../../lib/syncClubFormFields";
 
 export default function Formulaire({ data, onChange, clubsData = [], clubsLoading = false, clubsError = '' }) {
     const [formData, setFormData] = useState(data);
@@ -37,19 +39,19 @@ export default function Formulaire({ data, onChange, clubsData = [], clubsLoadin
         setClubSearch(data.clubName || '');
     }, [data]);
 
+    useSyncClubFormFields({
+        data,
+        onChange,
+        clubsData,
+        clubsLoading,
+        selectedClubType,
+        setSelectedClubType,
+    });
+
     const calculateMemberTotal = (dataToCalculate) => {
         return memberFields.reduce((total, field) => {
             return total + (Number(dataToCalculate[field]) || 0);
         }, 0).toString();
-    };
-
-    const findSelectedClub = (clubName) => {
-        const normalizedSelectedType = normalizeClubType(selectedClubType);
-
-        return clubsData.find((club) => {
-            return normalizeClubType(club.typeClub) === normalizedSelectedType
-                && club.nomClub?.trim() === clubName;
-        });
     };
 
     const updateField = (key, value) => {
@@ -60,16 +62,17 @@ export default function Formulaire({ data, onChange, clubsData = [], clubsLoadin
         }
 
         if (key === 'clubName') {
-            const selectedClub = findSelectedClub(value);
-
-            newData.president = selectedClub?.President || '';
-            newData.vicePresident = selectedClub?.vicePresident || '';
-            newData.secretary = selectedClub?.Secretaire || '';
-            newData.region = selectedClub?.Region || '';
-            newData.zone = selectedClub?.Zone || '';
-            newData.clubLogoUrl = selectedClub?.clubLogoUrl || '';
-            newData.numeroAffiliation = selectedClub?.numeroAffiliation || '';
-            newData.clubType = selectedClub?.typeClub || '';
+            const selectedClub = findClubInList(clubsData, value, selectedClubType, newData.clubType);
+            Object.assign(newData, mapClubRecordToFormFields(selectedClub) || {
+                president: '',
+                vicePresident: '',
+                secretary: '',
+                region: '',
+                zone: '',
+                clubLogoUrl: '',
+                numeroAffiliation: '',
+                clubType: '',
+            });
         }
 
         setFormData(newData);
