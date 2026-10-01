@@ -3,6 +3,7 @@
 import html2canvas from 'html2canvas';
 import { prepareHtml2CanvasClone } from '../helpers/html2canvasUtils';
 import { base64ToBlob } from '../helpers/bas64ToBlob';
+import { buildExportFileBaseNameFromClub } from '../../lib/buildExportFileBaseName';
 
 /* ═══ Page constants (must match #rapport-capture CSS) ════ */
 
@@ -214,15 +215,6 @@ function buildDynamicPages(html, clubData) {
   }));
 }
 
-function sanitizeExportName(name) {
-  return String(name || 'rapport')
-    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
-    .replace(/\s+/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_|_$/g, '')
-    || 'rapport';
-}
-
 /* ═══ Single-page capture (html2canvas) ════════════════════ */
 
 async function capturePageAsCanvas(page, showToast, errorLabel = 'JPG') {
@@ -312,9 +304,7 @@ export async function exportMultiPageJpg(html, clubData, showToast) {
   try {
     await document.fonts.ready;
 
-    const clubName = clubData?.nomClub || 'rapport';
-    const clubType = clubData?.typeClub ? `_${clubData.typeClub}` : '';
-    const baseName = `Rapport_${clubName}${clubType}`;
+    const baseName = buildExportFileBaseNameFromClub(clubData);
 
     const pages = buildDynamicPages(html, clubData);
     const images = [];
@@ -328,7 +318,7 @@ export async function exportMultiPageJpg(html, clubData, showToast) {
   } catch (err) {
     console.error('exportMultiPageJpg error:', err);
     showToast?.('Erreur lors de la génération du JPG');
-    return { baseName: 'rapport', images: [] };
+    return { baseName: buildExportFileBaseNameFromClub(clubData), images: [] };
   }
 }
 
@@ -344,7 +334,7 @@ export async function exportMultiPagePdf(html, clubData, noteTitle, showToast) {
 
     const { jsPDF } = await import('jspdf');
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const nomDeLaNote = sanitizeExportName(noteTitle || clubData?.nomClub || 'rapport');
+    const baseName = buildExportFileBaseNameFromClub(clubData);
     const pages = buildDynamicPages(html, clubData);
 
     let addedPages = 0;
@@ -363,7 +353,7 @@ export async function exportMultiPagePdf(html, clubData, noteTitle, showToast) {
       return false;
     }
 
-    pdf.save(`Rapport_Lions_${nomDeLaNote}.pdf`);
+    pdf.save(`${baseName}.pdf`);
     return true;
   } catch (err) {
     console.error('exportMultiPagePdf error:', err);

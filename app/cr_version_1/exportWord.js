@@ -3,6 +3,7 @@
 import { getReunionDevelopedLabel, isVisiteLibreReunion } from '../../lib/reunionTypes';
 import { getCurrencySymbol } from '../../lib/treasuryCurrency';
 import { formatDate } from '../helpers/formatDate';
+import { buildExportFileBaseNameFromFormData } from '../../lib/buildExportFileBaseName';
 
 const FONT_STACK = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
 const COLOR_PRIMARY = '#173d68';
@@ -318,26 +319,17 @@ ${buildFooterHtml(formData)}
 </html>`;
 }
 
-function sanitizeExportName(name) {
-  return String(name || 'rapport')
-    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
-    .replace(/\s+/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_|_$/g, '')
-    || 'rapport';
-}
-
 /**
  * Exporte le formulaire CR V1 en document Word (.doc, HTML compatible Word).
  */
 export async function exportMultiPageWord(formData) {
   const html = await buildWordDocumentHtml(formData);
   const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-  const baseName = sanitizeExportName(formData.clubName || 'rapport');
+  const baseName = buildExportFileBaseNameFromFormData(formData);
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
   link.href = url;
-  link.download = `Rapport_Lions_${baseName}.doc`;
+  link.download = `${baseName}.doc`;
   link.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   return true;

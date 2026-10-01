@@ -14,6 +14,7 @@ import {
 } from './PreviewV1';
 import { prepareHtml2CanvasClone } from '../helpers/html2canvasUtils';
 import { base64ToBlob } from '../helpers/bas64ToBlob';
+import { buildExportFileBaseNameFromFormData } from '../../lib/buildExportFileBaseName';
 
 /* ═══ Container helpers ════════════════════════════════════ */
 
@@ -354,15 +355,6 @@ async function capturePageAsJpg(blocks, pageNumber, formData, showToast) {
   return canvas ? canvas.toDataURL('image/jpeg', 0.95) : null;
 }
 
-function sanitizeExportName(name) {
-  return String(name || 'rapport')
-    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
-    .replace(/\s+/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_|_$/g, '')
-    || 'rapport';
-}
-
 /* ═══ Main export function ══════════════════════════════════ */
 
 /**
@@ -375,9 +367,7 @@ function sanitizeExportName(name) {
  * 4. Returns { baseName, images[] }.
  */
 export async function exportMultiPageJpg(formData, showToast) {
-  const clubName = formData.clubName || 'rapport';
-  const clubType = formData.clubType ? `_${formData.clubType}` : '';
-  const baseName = `Rapport_Lions_${clubName}${clubType}`;
+  const baseName = buildExportFileBaseNameFromFormData(formData);
 
   try {
     await document.fonts.ready;
@@ -407,7 +397,7 @@ export async function exportMultiPageJpg(formData, showToast) {
  * an A4 portrait PDF (210×297 mm) without extra margins.
  */
 export async function exportMultiPagePdf(formData, showToast) {
-  const nomDeLaNote = sanitizeExportName(formData.clubName || 'rapport');
+  const baseName = buildExportFileBaseNameFromFormData(formData);
 
   try {
     await document.fonts.ready;
@@ -433,7 +423,7 @@ export async function exportMultiPagePdf(formData, showToast) {
       return false;
     }
 
-    pdf.save(`Rapport_Lions_${nomDeLaNote}.pdf`);
+    pdf.save(`${baseName}.pdf`);
     return true;
   } catch (err) {
     console.error('exportMultiPagePdf error:', err);

@@ -12,6 +12,7 @@ import { JpgDownloadModal } from './components/JpgDownloadModal';
 import { base64ToBlob } from './helpers/bas64ToBlob';
 import { prepareHtml2CanvasClone } from './helpers/html2canvasUtils';
 import html2canvas from 'html2canvas';
+import { buildExportFileBaseNameFromFormData } from '../lib/buildExportFileBaseName';
 
 
 export default function Home() {
@@ -169,11 +170,7 @@ export default function Home() {
         setApercuLoading(false);
     };
 
-    const buildExportBaseName = () => {
-        const now = new Date();
-        const stamp = `${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
-        return `${formData.meetingDate}_${formData.clubName}${formData.clubType&&'_'+formData.clubType}_${stamp}`;
-    };
+    const buildExportBaseName = () => buildExportFileBaseNameFromFormData(formData);
 
     const downloadSingleJpg = (imageUrl, fileName) => {
         const blob = base64ToBlob(imageUrl, 'image/jpeg');
