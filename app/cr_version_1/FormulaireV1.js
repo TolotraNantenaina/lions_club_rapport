@@ -6,7 +6,7 @@ import { FormField } from '../components/formField';
 import { TextareaField } from '../components/textareaField';
 import { CLUB_TYPE, filterClubsByTypeAndQuery, normalizeClubType } from '../../lib/clubSearchFilter';
 import { REUNION_OPTIONS, isVisiteLibreReunion } from '../../lib/reunionTypes';
-import { TREASURY_CURRENCIES, getCurrencySymbol } from '../../lib/treasuryCurrency';
+import { TREASURY_CURRENCIES, getCurrencyCode, isTreasuryEnabled } from '../../lib/treasuryCurrency';
 import { DiversEditor } from './DiversEditor';
 import { VisiteLibreEditor } from './VisiteLibreEditor';
 import { useSyncClubFormFields } from '../helpers/useSyncClubFormFields';
@@ -41,7 +41,9 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
   ];
   const reunionOptions = ['', ...REUNION_OPTIONS];
   const isVisiteLibreMode = isVisiteLibreReunion(formData.reunionType);
-  const currencySymbol = getCurrencySymbol(formData.treasuryCurrency);
+  const currencyCode = getCurrencyCode(formData.treasuryCurrency);
+  const treasuryEnabled = isTreasuryEnabled(formData);
+  const lcifEnabled = formData.lcifEnabled === 'OUI';
 
   const filteredClubOptions = useMemo(
     () => filterClubsByTypeAndQuery(clubsData, selectedClubType, clubSearch),
@@ -112,8 +114,14 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
     updateField('reunionType', reunionType);
   };
 
+  /* Comptes locaux : devise choisie affichée devant le montant (« MUR 44 235 ») */
   const renderMoneyInput = (id, value, onChangeValue, placeholder = '0.00') => (
     <div className="relative">
+      {currencyCode && (
+        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-500">
+          {currencyCode}
+        </span>
+      )}
       <input
         id={id}
         type="number"
@@ -121,32 +129,41 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChangeValue(e.target.value)}
-        className="form-input pt-[12px] pr-12"
+        className={`form-input pt-[12px] ${currencyCode ? 'pl-16' : ''}`}
       />
-      {currencySymbol && (
-        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-500">
-          {currencySymbol}
-        </span>
-      )}
     </div>
   );
 
+  /* Cotisations instances : texte libre, devise non imposée (ex. « EUR 1 200 ») */
   const renderTextMoneyInput = (id, value, onChangeValue, placeholder) => (
-    <div className="relative">
-      <input
-        id={id}
-        type="text"
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChangeValue(e.target.value)}
-        className="form-input pt-[12px] pr-12"
-      />
-      {currencySymbol && (
-        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-500">
-          {currencySymbol}
-        </span>
-      )}
-    </div>
+    <input
+      id={id}
+      type="text"
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChangeValue(e.target.value)}
+      className="form-input pt-[12px]"
+    />
+  );
+
+  /* Choix OUI / NON : NON masque la saisie et retire la partie du rapport */
+  const renderYesNoToggle = (field, label, onDark = false) => (
+    <fieldset className="m-0 flex min-w-0 items-center gap-2 border-0 p-0 normal-case">
+      <legend className="float-left mr-2 p-0 text-[0.75rem] font-semibold">
+        <span className={onDark ? 'text-white' : 'text-primary'}>{label}</span>
+      </legend>
+      <div className="flex items-center rounded-[10px] bg-[#d4af37] p-1">
+        {['OUI', 'NON'].map((choice) => (
+          <button
+            key={choice}
+            type="button"
+            aria-pressed={formData[field] === choice}
+            onClick={() => updateField(field, choice)}
+            className={['rounded-[8px] px-3 py-1 text-sm font-semibold transition', formData[field] === choice ? 'bg-accent text-white shadow-sm' : 'text-slate-800 hover:text-primary'].join(' ')}
+          >{choice}</button>
+        ))}
+      </div>
+    </fieldset>
   );
 
   const renderMeetingInfoSection = () => (
@@ -298,6 +315,7 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
             <TextareaField label="Mot éventuel du président" placeholder="Entrez le mot du président..." htmlFor="presidentWord" value={formData.presidentWord} onChange={(value) => updateField('presidentWord', value)} />
             <TextareaField label="Rappel de l'ordre du jour" placeholder="Rappel de l'ordre du jour..." htmlFor="orderOfDay" value={formData.orderOfDay} onChange={(value) => updateField('orderOfDay', value)} />
             <TextareaField label="Approbation du compte-rendu" placeholder="Approbation du compte-rendu..." htmlFor="approvalPV" value={formData.approvalPV} onChange={(value) => updateField('approvalPV', value)} />
+            <TextareaField label="Communications du Président" placeholder="Communications du président..." htmlFor="presidentCommunications" value={formData.presidentCommunications} onChange={(value) => updateField('presidentCommunications', value)} />
           </section>
         </div>
 
@@ -316,24 +334,34 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
             <SectionHeading
               title="💰 Trésorerie"
               trailing={(
-                <div className="flex w-[250px] max-w-[250px] shrink-0 items-center gap-2 normal-case">
-                  <label htmlFor="treasuryCurrency" className="shrink-0 text-[0.75rem] font-semibold text-white">
-                    Devise
-                  </label>
-                  <select
-                    id="treasuryCurrency"
-                    value={formData.treasuryCurrency || ''}
-                    onChange={(e) => updateField('treasuryCurrency', e.target.value)}
-                    className="h-9 min-w-0 flex-1 rounded-md border border-white/25 bg-white px-2 text-[0.7rem] font-medium text-slate-900"
-                  >
-                    <option value="">Sélectionner…</option>
-                    {TREASURY_CURRENCIES.map((c) => (
-                      <option key={c.value} value={c.value}>{c.label}</option>
-                    ))}
-                  </select>
+                <div className="flex flex-wrap items-center gap-4">
+                  {renderYesNoToggle('treasuryEnabled', 'À déclarer', true)}
+                  {treasuryEnabled && (
+                    <div className="flex w-[250px] max-w-[250px] shrink-0 items-center gap-2 normal-case">
+                      <label htmlFor="treasuryCurrency" className="shrink-0 text-[0.75rem] font-semibold text-white">
+                        Devise
+                      </label>
+                      <select
+                        id="treasuryCurrency"
+                        value={formData.treasuryCurrency || ''}
+                        onChange={(e) => updateField('treasuryCurrency', e.target.value)}
+                        className="h-9 min-w-0 flex-1 rounded-md border border-white/25 bg-white px-2 text-[0.7rem] font-medium text-slate-900"
+                      >
+                        <option value="">Sélectionner…</option>
+                        {TREASURY_CURRENCIES.map((c) => (
+                          <option key={c.value} value={c.value}>{c.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               )}
             />
+            {!treasuryEnabled && (
+              <p className="text-[0.95em] text-dark-grey">Section non incluse dans le rapport. Choisissez « OUI » pour saisir la trésorerie.</p>
+            )}
+            {treasuryEnabled && (
+            <>
             <div className="grid gap-6 sm:grid-cols-2">
               <FormField label="Solde compte administratif" htmlFor="adminBalance">
                 {renderMoneyInput('adminBalance', formData.adminBalance, (v) => updateField('adminBalance', v))}
@@ -342,16 +370,18 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
                 {renderMoneyInput('worksBalance', formData.worksBalance, (v) => updateField('worksBalance', v))}
               </FormField>
               <FormField label="Cotisation Siège" htmlFor="headQuartersFees">
-                {renderTextMoneyInput('headQuartersFees', formData.headQuartersFees, (v) => updateField('headQuartersFees', v), 'Montant')}
+                {renderTextMoneyInput('headQuartersFees', formData.headQuartersFees, (v) => updateField('headQuartersFees', v), 'Ex : EUR 1 200')}
               </FormField>
               <FormField label="Cotisation District" htmlFor="districtFees">
-                {renderTextMoneyInput('districtFees', formData.districtFees, (v) => updateField('districtFees', v), 'Montant')}
+                {renderTextMoneyInput('districtFees', formData.districtFees, (v) => updateField('districtFees', v), 'Ex : EUR 1 200')}
               </FormField>
               <FormField label="Cotisation Région" htmlFor="regionFees">
-                {renderTextMoneyInput('regionFees', formData.regionFees, (v) => updateField('regionFees', v), 'Montant')}
+                {renderTextMoneyInput('regionFees', formData.regionFees, (v) => updateField('regionFees', v), 'Ex : EUR 1 200')}
               </FormField>
             </div>
             <TextareaField label="Autres points sur la trésorerie" placeholder="Autres informations de trésorerie..." htmlFor="treasuryOther" value={formData.treasuryOther} onChange={(value) => updateField('treasuryOther', value)} />
+            </>
+            )}
           </section>
         </div>
 
@@ -371,7 +401,15 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
         <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto">
           <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
             <SectionHeading title="📢 Autres points" />
-            <TextareaField label="Point LCIF" placeholder="Informations sur le LCIF..." htmlFor="pointLCIF" value={formData.pointLCIF} onChange={(value) => updateField('pointLCIF', value)} />
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="text-[0.95em] font-semibold text-primary">Point LCIF</span>
+                {renderYesNoToggle('lcifEnabled', 'À déclarer')}
+              </div>
+              {lcifEnabled && (
+                <TextareaField label="" placeholder="Informations sur le LCIF..." htmlFor="pointLCIF" value={formData.pointLCIF} onChange={(value) => updateField('pointLCIF', value)} />
+              )}
+            </div>
             <TextareaField label="Interventions LEO" placeholder="Interventions LEO..." htmlFor="interventionsLeo" value={formData.interventionsLeo} onChange={(value) => updateField('interventionsLeo', value)} />
             <TextareaField label="Programme du mois" placeholder="Programme du mois..." htmlFor="monthProgram" value={formData.monthProgram} onChange={(value) => updateField('monthProgram', value)} />
 

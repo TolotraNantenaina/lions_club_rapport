@@ -1,7 +1,7 @@
 'use client';
 
-import { getReunionDevelopedLabel, isVisiteLibreReunion } from '../../lib/reunionTypes';
-import { getCurrencySymbol } from '../../lib/treasuryCurrency';
+import { getCompteRenduTitle, isVisiteLibreReunion } from '../../lib/reunionTypes';
+import { formatLocalAccountAmount, isTreasuryEnabled } from '../../lib/treasuryCurrency';
 import { formatDate } from '../helpers/formatDate';
 import { buildExportFileBaseNameFromFormData } from '../../lib/buildExportFileBaseName';
 
@@ -192,8 +192,8 @@ function buildWordHeaderHtml(formData, logos) {
 }
 
 function buildIntroHtml(formData) {
-  const developed = getReunionDevelopedLabel(formData.reunionType);
   const titleDate = formData.meetingDate ? formatDate(formData.meetingDate) : 'date non renseignée';
+  const title = getCompteRenduTitle(formData.reunionType, titleDate);
   const location = formData.location || 'Non renseigné';
   const startTime = formatTime(formData.startTime) || 'Non renseigné';
   const participants = isVisiteLibreReunion(formData.reunionType)
@@ -210,8 +210,7 @@ function buildIntroHtml(formData) {
 
   return `
 <div style="text-align:center;margin-bottom:12pt;font-family:${FONT_STACK};">
-  <p style="margin:0;font-family:${FONT_STACK};font-size:16.5pt;font-weight:900;text-transform:uppercase;color:${COLOR_BODY};">Compte-Rendu de ${escapeHtml(developed)}</p>
-  <p style="margin:4pt 0 0;font-family:${FONT_STACK};font-size:15pt;font-weight:700;text-transform:uppercase;">du ${escapeHtml(titleDate)}</p>
+  <p style="margin:0;font-family:${FONT_STACK};font-size:16.5pt;font-weight:900;color:${COLOR_BODY};">${escapeHtml(title)}</p>
   <p style="margin:6pt 0 0;font-family:${FONT_STACK};font-size:13.5pt;font-weight:600;">Lieu : ${escapeHtml(locDisplay)}</p>
 </div>
 ${participants ? `<p style="font-family:${FONT_STACK};font-size:11pt;margin:0 0 8pt;"><strong>Présents :</strong> ${escapeHtml(participants)}</p>` : ''}
@@ -219,34 +218,39 @@ ${participants ? `<p style="font-family:${FONT_STACK};font-size:11pt;margin:0 0 
 }
 
 async function buildClassicWordBody(formData) {
-  const sym = getCurrencySymbol(formData.treasuryCurrency);
-  const money = (v) => {
-    if (!v) return 'Non renseigné';
-    return sym ? `${v} ${sym}` : String(v);
+  const localAmount = (v) => formatLocalAccountAmount(v, formData.treasuryCurrency) || 'Non renseigné';
+  const freeText = (v) => (v && String(v).trim()) || 'Non renseigné';
+  let sectionNumber = 0;
+  const numbered = (title) => {
+    sectionNumber += 1;
+    return `${sectionNumber}/ ${title}`;
   };
 
   const parts = [
-    sectionTitleHtml('1/ Mot éventuel du président') + linesToWordHtml(formData.presidentWord),
-    sectionTitleHtml("2/ Rappel de l'ordre du jour") + linesToWordHtml(formData.orderOfDay),
-    sectionTitleHtml('3/ Approbation du compte-rendu') + linesToWordHtml(formData.approvalPV),
-    sectionTitleHtml('4/ Secrétariat')
+    sectionTitleHtml(numbered('Mot éventuel du président')) + linesToWordHtml(formData.presidentWord),
+    sectionTitleHtml(numbered("Rappel de l'ordre du jour")) + linesToWordHtml(formData.orderOfDay),
+    sectionTitleHtml(numbered('Approbation du compte-rendu')) + linesToWordHtml(formData.approvalPV),
+    sectionTitleHtml(numbered('Communications du Président')) + linesToWordHtml(formData.presidentCommunications),
+    sectionTitleHtml(numbered('Secrétariat'))
       + subTitleHtml('Courriers reçus') + linesToWordHtml(formData.receivedMails)
       + subTitleHtml('Courriers envoyés') + linesToWordHtml(formData.sentMails),
-    sectionTitleHtml('5/ Trésorerie')
-      + labelLineHtml('Solde compte administratif', money(formData.adminBalance))
-      + labelLineHtml('Solde compte œuvre', money(formData.worksBalance))
-      + labelLineHtml('Cotisation Siège', money(formData.headQuartersFees))
-      + labelLineHtml('Cotisation District', money(formData.districtFees))
-      + labelLineHtml('Cotisation Région', money(formData.regionFees))
-      + linesToWordHtml(formData.treasuryOther),
-    sectionTitleHtml('6/ Commissions et actions')
+    isTreasuryEnabled(formData)
+      ? sectionTitleHtml(numbered('Trésorerie'))
+        + labelLineHtml('Solde compte administratif', localAmount(formData.adminBalance))
+        + labelLineHtml('Solde compte œuvre', localAmount(formData.worksBalance))
+        + labelLineHtml('Cotisation Siège', freeText(formData.headQuartersFees))
+        + labelLineHtml('Cotisation District', freeText(formData.districtFees))
+        + labelLineHtml('Cotisation Région', freeText(formData.regionFees))
+        + linesToWordHtml(formData.treasuryOther)
+      : '',
+    sectionTitleHtml(numbered('Commissions et actions'))
       + subTitleHtml('POINT EME (Effectif)') + linesToWordHtml(formData.pointEME)
       + subTitleHtml('POINT EML (Formation)') + linesToWordHtml(formData.pointEML)
       + subTitleHtml('POINT EMS (Service-Oeuvres)') + linesToWordHtml(formData.pointEMS)
       + subTitleHtml('Actions en cours') + linesToWordHtml(formData.ongoingActions)
       + subTitleHtml('Point Marketing et Communication') + linesToWordHtml(formData.marketing),
-    sectionTitleHtml('7/ Autres points')
-      + subTitleHtml('Point LCIF') + linesToWordHtml(formData.pointLCIF)
+    sectionTitleHtml(numbered('Autres points'))
+      + (formData.lcifEnabled === 'OUI' ? subTitleHtml('Point LCIF') + linesToWordHtml(formData.pointLCIF) : '')
       + subTitleHtml('Interventions LEO') + linesToWordHtml(formData.interventionsLeo)
       + subTitleHtml('Programme du mois') + linesToWordHtml(formData.monthProgram)
       + subTitleHtml('Divers')
@@ -270,14 +274,12 @@ function buildFooterHtml(formData) {
   const secretary = escapeHtml(formData.secretary || '');
 
   const presBlock = president
-    ? `<p style="font-weight:900;margin:0;">Le Président</p><p style="font-weight:700;margin:0;">${president}</p>`
+    ? `<p style="font-weight:900;margin:0;">Président</p><p style="font-weight:700;margin:0;">${president}</p>`
     : vicePresident
-      ? `<p style="font-weight:900;margin:0;">Le Vice-Président</p><p style="font-weight:700;margin:0;">${vicePresident}</p>`
-      : '<p style="font-weight:900;margin:0;">Le Président</p><p style="font-weight:700;margin:0;">Nom à renseigner</p>';
+      ? `<p style="font-weight:900;margin:0;">Vice-Président</p><p style="font-weight:700;margin:0;">${vicePresident}</p>`
+      : '<p style="font-weight:900;margin:0;">Président</p><p style="font-weight:700;margin:0;">Nom à renseigner</p>';
 
-  const secBlock = secretary
-    ? `<p style="font-weight:900;margin:0;">La secrétaire</p><p style="font-weight:700;margin:0;">${secretary}</p>`
-    : '<p style="font-weight:900;margin:0;">La secrétaire</p><p style="font-weight:700;margin:0;">Nom à renseigner</p>';
+  const secBlock = `<p style="font-weight:900;margin:0;">Secrétaire</p><p style="font-weight:700;margin:0;">${secretary || 'Nom à renseigner'}</p>`;
 
   return `
 <hr style="border:none;border-top:1px solid #e2e8f0;margin:18pt 0;" />

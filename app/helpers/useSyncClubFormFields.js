@@ -31,7 +31,9 @@ export function useSyncClubFormFields({
       return;
     }
 
-    const club = findClubInList(clubsData, data.clubName, selectedClubType, data.clubType);
+    // Le type enregistré prime sur le toggle (Lion par défaut au chargement) :
+    // sinon un club Leo homonyme d’un club Lion bascule sur la fiche Lion.
+    const club = findClubInList(clubsData, data.clubName, data.clubType, selectedClubType);
     const fields = mapClubRecordToFormFields(club);
     const patch = buildClubFormSyncPatch(data, fields);
     if (!patch) return;

@@ -261,8 +261,8 @@ function CRBlock({ block, president, vicePresident, secretary, location }) {
                 </div>
 
                 <div className="grid grid-cols-2 gap-28">
-                    {president ? <SignatureBlock title="Le Président" name={president} /> : (vicePresident ? <SignatureBlock title="Le Vice-Président" name={vicePresident} /> : <SignatureBlock title="Le Président" name="Nom à renseigner" />)}
-                    {secretary ? <SignatureBlock title="La secrétaire" name={secretary} /> : <SignatureBlock title="La secrétaire" name="Nom à renseigner" />}
+                    {president ? <SignatureBlock title="Président" name={president} /> : (vicePresident ? <SignatureBlock title="Vice-Président" name={vicePresident} /> : <SignatureBlock title="Président" name="Nom à renseigner" />)}
+                    <SignatureBlock title="Secrétaire" name={secretary || 'Nom à renseigner'} />
                 </div>
             </footer>
         );

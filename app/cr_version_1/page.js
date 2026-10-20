@@ -17,6 +17,7 @@ import {
 import { exportMultiPageWord } from './exportWord';
 import { getCompteRenduPageSubtitle } from '../../lib/reunionTypes';
 import { validateTreasuryCurrencyForExport } from '../../lib/treasuryCurrency';
+import { formatDate } from '../helpers/formatDate';
 
 /**
  * CR Version 1 — Page principale.
@@ -27,7 +28,7 @@ import { validateTreasuryCurrencyForExport } from '../../lib/treasuryCurrency';
  *  3. Export JPG multi-pages avec logique anti-coupure
  */
 export default function CrVersion1Page() {
-  const { formData, setFormData, resetForm: storageReset, initialized } = useCrFormStorage();
+  const { formData, setFormData, resetFormData: storageReset, initialized } = useCrFormStorage();
   const [toast, setToast] = useState('');
   const [apercuUrls, setApercuUrls] = useState([]);
   const [apercuValide, setApercuValide] = useState(false);
@@ -37,8 +38,13 @@ export default function CrVersion1Page() {
   const [downloadModal, setDownloadModal] = useState(null);
   const [pdfExporting, setPdfExporting] = useState(false);
   const [wordExporting, setWordExporting] = useState(false);
+  /* Incrémenté au reset pour remonter le formulaire (éditeurs TipTap, recherche club…) */
+  const [formKey, setFormKey] = useState(0);
 
-  const pageSubtitle = getCompteRenduPageSubtitle(formData.reunionType);
+  const pageSubtitle = getCompteRenduPageSubtitle(
+    formData.reunionType,
+    formData.meetingDate ? formatDate(formData.meetingDate) : '',
+  );
 
   /* ── Derived state ─────────────────────────────────────── */
   const isEmpty = apercuUrls.length === 0;
@@ -64,6 +70,8 @@ export default function CrVersion1Page() {
   const resetForm = useCallback(() => {
     if (window.confirm('Êtes-vous sûr de vouloir réinitialiser tous les champs ?')) {
       storageReset();
+      setFormKey((k) => k + 1);
+      setDownloadModal(null);
       setApercuUrls([]);
       setApercuValide(false);
       setApercuLoading(false);
@@ -181,6 +189,7 @@ export default function CrVersion1Page() {
       {/* ═══ Formulaire (TipTap "Divers") ═══════════════════ */}
       <div className={pdfExporting || wordExporting ? 'pointer-events-none select-none' : undefined}>
         <FormulaireV1
+          key={formKey}
           data={formData}
           onChange={setFormData}
           clubsData={clubsData}

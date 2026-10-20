@@ -1,8 +1,8 @@
 'use client';
 
 import { formatDate } from '../helpers/formatDate';
-import { getReunionDevelopedLabel, isVisiteLibreReunion } from '../../lib/reunionTypes';
-import { getCurrencySymbol } from '../../lib/treasuryCurrency';
+import { getCompteRenduTitle, isVisiteLibreReunion } from '../../lib/reunionTypes';
+import { formatLocalAccountAmount, isTreasuryEnabled } from '../../lib/treasuryCurrency';
 
 /* ═══ A4 Page constants ═══════════════════════════════════ */
 export const PAGE_WIDTH = 1240;
@@ -176,11 +176,13 @@ function buildGroupedSection(title, groups) {
   ];
 }
 
-function formatTreasuryValue(value, currencyCode) {
-  const text = valueOrDash(value);
-  if (!value || text === 'Non renseigné') return text;
-  const symbol = getCurrencySymbol(currencyCode);
-  return symbol ? `${text} ${symbol}` : text;
+/** Numérote les sections visibles (« 1/ … ») — la trésorerie peut être masquée */
+function createSectionNumberer() {
+  let current = 0;
+  return (title) => {
+    current += 1;
+    return `${current}/ ${title}`;
+  };
 }
 
 function getVisiteLibrePreviewBlocks(data) {
@@ -191,8 +193,7 @@ function getVisiteLibrePreviewBlocks(data) {
   return [
     {
       type: 'intro',
-      developedReunion: getReunionDevelopedLabel(data.reunionType),
-      titleDate,
+      title: getCompteRenduTitle(data.reunionType, titleDate),
       location: valueOrDash(data.location),
       participants: '',
       startTime: formatTime(data.startTime) || 'Non renseigné',
@@ -220,6 +221,7 @@ export function getPreviewCRBlocks(data) {
 
   const titleDate = data.meetingDate ? formatDate(data.meetingDate) : 'date non renseignée';
   const currency = data.treasuryCurrency;
+  const numbered = createSectionNumberer();
   const participants = [
     `${valueOrDash(data.memberPresent)} présents`,
     `${valueOrDash(data.memberExcused)} excusés`,
@@ -228,12 +230,22 @@ export function getPreviewCRBlocks(data) {
     `${valueOrDash(data.memberTotal)} membres au total`,
   ].join(' - ');
   const treasuryItems = [
-    ['Solde compte administratif', formatTreasuryValue(data.adminBalance, currency)],
-    ['Solde compte œuvre', formatTreasuryValue(data.worksBalance, currency)],
-    ['Cotisation Siège', formatTreasuryValue(data.headQuartersFees, currency)],
-    ['Cotisation District', formatTreasuryValue(data.districtFees, currency)],
-    ['Cotisation Région', formatTreasuryValue(data.regionFees, currency)],
+    ['Solde compte administratif', formatLocalAccountAmount(data.adminBalance, currency)],
+    ['Solde compte œuvre', formatLocalAccountAmount(data.worksBalance, currency)],
+    ['Cotisation Siège', data.headQuartersFees],
+    ['Cotisation District', data.districtFees],
+    ['Cotisation Région', data.regionFees],
   ];
+  const treasuryBlocks = isTreasuryEnabled(data)
+    ? [
+        { type: 'sectionTitle', title: numbered('Trésorerie') },
+        ...treasuryItems.map(([label, value]) => ({ type: 'labelLine', label, value: valueOrDash(value) })),
+        ...buildBulletBlocks(data.treasuryOther),
+      ]
+    : [];
+  const lcifBlocks = data.lcifEnabled === 'OUI'
+    ? [{ type: 'subTitle', title: 'Point LCIF' }, ...buildBulletBlocks(data.pointLCIF)]
+    : [];
 
   const miscellaneousHtml = data.miscellaneous || '';
   const hasMiscHtml = miscellaneousHtml && miscellaneousHtml !== '<p></p>' && miscellaneousHtml.trim() !== '';
@@ -241,33 +253,29 @@ export function getPreviewCRBlocks(data) {
   return [
     {
       type: 'intro',
-      developedReunion: getReunionDevelopedLabel(data.reunionType),
-      reunionType: valueOrDash(data.reunionType),
-      titleDate,
+      title: getCompteRenduTitle(data.reunionType, titleDate),
       location: valueOrDash(data.location),
       participants,
       startTime: formatTime(data.startTime) || 'Non renseigné',
     },
-    ...buildTextSection('1/ Mot éventuel du président', data.presidentWord),
-    ...buildTextSection("2/ Rappel de l'ordre du jour", data.orderOfDay),
-    ...buildTextSection('3/ Approbation du compte-rendu', data.approvalPV),
-    ...buildGroupedSection('4/ Secrétariat', [
+    ...buildTextSection(numbered('Mot éventuel du président'), data.presidentWord),
+    ...buildTextSection(numbered("Rappel de l'ordre du jour"), data.orderOfDay),
+    ...buildTextSection(numbered('Approbation du compte-rendu'), data.approvalPV),
+    ...buildTextSection(numbered('Communications du Président'), data.presidentCommunications),
+    ...buildGroupedSection(numbered('Secrétariat'), [
       { title: 'Courriers reçus', value: data.receivedMails },
       { title: 'Courriers envoyés', value: data.sentMails },
     ]),
-    { type: 'sectionTitle', title: '5/ Trésorerie' },
-    ...treasuryItems.map(([label, value]) => ({ type: 'labelLine', label, value: valueOrDash(value) })),
-    ...buildBulletBlocks(data.treasuryOther),
-    ...buildGroupedSection('6/ Commissions et actions', [
+    ...treasuryBlocks,
+    ...buildGroupedSection(numbered('Commissions et actions'), [
       { title: 'POINT EME (Effectif)', value: data.pointEME },
       { title: 'POINT EML (Formation)', value: data.pointEML },
       { title: 'POINT EMS (Service-Oeuvres)', value: data.pointEMS },
       { title: 'Actions en cours', value: data.ongoingActions },
       { title: 'Point Marketing et Communication', value: data.marketing },
     ]),
-    { type: 'sectionTitle', title: '7/ Autres points' },
-    { type: 'subTitle', title: 'Point LCIF' },
-    ...buildBulletBlocks(data.pointLCIF),
+    { type: 'sectionTitle', title: numbered('Autres points') },
+    ...lcifBlocks,
     { type: 'subTitle', title: 'Interventions LEO' },
     ...buildBulletBlocks(data.interventionsLeo),
     { type: 'subTitle', title: 'Programme du mois' },
@@ -293,14 +301,12 @@ export function getPreviewCRBlocks(data) {
 
 function CRBlock({ block, president, vicePresident, secretary, location }) {
   if (block.type === 'intro') {
-    const reunionLabel = block.developedReunion || block.reunionType || 'Réunion Statutaire';
     return (
       <>
         <div style={{ marginBottom: '12px', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: 900, textTransform: 'uppercase', margin: 0 }}>
-            Compte-Rendu de {reunionLabel}
+          <h2 style={{ fontSize: '22px', fontWeight: 900, margin: 0 }}>
+            {block.title}
           </h2>
-          <p style={{ fontSize: '20px', fontWeight: 700, textTransform: 'uppercase', margin: '4px 0 0' }}>du {block.titleDate}</p>
           <p style={{ marginTop: '6px', fontSize: '18px', fontWeight: 600 }}>
             Lieu : {location ? location.charAt(0).toUpperCase() + location.slice(1) : '<--Lieu non renseigné -->'}
           </p>
@@ -339,15 +345,12 @@ function CRBlock({ block, president, vicePresident, secretary, location }) {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px' }}>
           {president
-            ? <SignatureBlock title="Le Président" name={president} />
+            ? <SignatureBlock title="Président" name={president} />
             : (vicePresident
-              ? <SignatureBlock title="Le Vice-Président" name={vicePresident} />
-              : <SignatureBlock title="Le Président" name="Nom à renseigner" />)
+              ? <SignatureBlock title="Vice-Président" name={vicePresident} />
+              : <SignatureBlock title="Président" name="Nom à renseigner" />)
           }
-          {secretary
-            ? <SignatureBlock title="La secrétaire" name={secretary} />
-            : <SignatureBlock title="La secrétaire" name="Nom à renseigner" />
-          }
+          <SignatureBlock title="Secrétaire" name={secretary || 'Nom à renseigner'} />
         </div>
       </footer>
     );

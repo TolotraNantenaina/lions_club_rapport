@@ -5,6 +5,27 @@ import { initialData } from '../constantes/initialData';
 
 const STORAGE_KEY = 'lions-cr-v1-form';
 
+const TREASURY_FIELDS = ['adminBalance', 'worksBalance', 'headQuartersFees', 'districtFees', 'regionFees', 'treasuryOther'];
+
+function hasText(value) {
+  return Boolean(String(value ?? '').trim());
+}
+
+/**
+ * Brouillons antérieurs aux options OUI / NON : on affiche la section
+ * si elle contenait déjà des données, pour ne rien perdre à l’export.
+ */
+function migrateSavedForm(saved) {
+  const next = { ...saved };
+  if (!next.treasuryEnabled) {
+    next.treasuryEnabled = TREASURY_FIELDS.some((key) => hasText(saved[key])) ? 'OUI' : 'NON';
+  }
+  if (!next.lcifEnabled) {
+    next.lcifEnabled = hasText(saved.pointLCIF) ? 'OUI' : 'NON';
+  }
+  return next;
+}
+
 /**
  * Persists the full CR form state (all fields + TipTap "Divers" HTML)
  * to localStorage with debounced writes for Offline-First PWA support.
@@ -23,7 +44,7 @@ export function useCrFormStorage() {
       if (raw) {
         const saved = JSON.parse(raw);
         if (saved && typeof saved === 'object') {
-          setFormData((prev) => ({ ...prev, ...saved }));
+          setFormData((prev) => ({ ...prev, ...migrateSavedForm(saved) }));
         }
       }
     } catch {
@@ -57,17 +78,19 @@ export function useCrFormStorage() {
     [persist],
   );
 
-  /** Reset all fields */
-  const resetFormData = useCallback(() => {
-    setFormData(initialData);
-    persist(initialData);
-  }, [persist]);
-
-  /** Clear localStorage */
+  /** Clear localStorage and reset all fields (cancels any pending debounced save) */
   const clear = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    setFormData(initialData);
+    clearTimeout(timerRef.current);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* storage unavailable — silently ignore */
+    }
+    setFormData({ ...initialData });
   }, []);
+
+  /** Reset all fields */
+  const resetFormData = clear;
 
   return { formData, setFormData: updateFormData, resetFormData, clear, initialized };
 }
