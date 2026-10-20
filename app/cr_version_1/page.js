@@ -172,7 +172,7 @@ export default function CrVersion1Page() {
               <Image src="/ico_lions_club_transparent.png" alt="Logo Lions Club" width={55} height={55} className="mb-2 h-[55px] w-[55px]" />
               <h1 className="mb-2 text-[1.8rem] font-bold tracking-tight sm:text-[2.5rem]">Lions Club</h1>
             </div>
-            <p className="text-[1.1em]">{pageSubtitle} — V1 TipTap</p>
+            <p className="text-[1.1em]">{pageSubtitle}</p>
           </div>
           <Link
             href="/"
