@@ -222,6 +222,8 @@ function splitHtmlBlockAcrossPages(html, availableHeight) {
 function buildDynamicPages(formData) {
   const allBlocks = getPreviewCRBlocks(formData);
   const maxBodyH = BODY_HEIGHT - SAFE_BOTTOM_MARGIN;
+  // Hauteur utile du flux (en-tête compris) : page moins padding haut/bas moins marge blanche du bas
+  const maxFlowH = PAGE_HEIGHT - PAGE_PADDING_Y * 2 - SAFE_BOTTOM_MARGIN;
 
   // Flatten: split htmlBlock into individual elements for granular splitting
   const flatBlocks = [];
@@ -247,7 +249,7 @@ function buildDynamicPages(formData) {
 
     if (currentBlocks.length > 0) {
       const h = measureBlocksHeight(candidate, pageNum, formData);
-      if (h > PAGE_HEIGHT - SAFE_BOTTOM_MARGIN) {
+      if (h > maxFlowH) {
         pages.push(currentBlocks);
         currentBlocks = [block];
         return;
@@ -259,12 +261,15 @@ function buildDynamicPages(formData) {
 
   if (currentBlocks.length > 0) pages.push(currentBlocks);
 
-  // Merge footer-only last page into previous
+  // Merge footer-only last page into previous — seulement s'il y tient réellement
   if (pages.length > 1) {
     const last = pages[pages.length - 1];
     if (last.length === 1 && last[0].type === 'footer') {
-      pages[pages.length - 2] = [...pages[pages.length - 2], last[0]];
-      pages.pop();
+      const merged = [...pages[pages.length - 2], last[0]];
+      if (measureBlocksHeight(merged, pages.length - 1, formData) <= maxFlowH) {
+        pages[pages.length - 2] = merged;
+        pages.pop();
+      }
     }
   }
 

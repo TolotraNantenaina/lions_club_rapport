@@ -114,36 +114,46 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
     updateField('reunionType', reunionType);
   };
 
-  /* Comptes locaux : devise choisie affichée devant le montant (« MUR 44 235 ») */
-  const renderMoneyInput = (id, value, onChangeValue, placeholder = '0.00') => (
-    <div className="relative">
+  /* Devise dans un bloc séparé, à gauche du champ : | MUR | 44235 | */
+  const renderCurrencyAddon = (input) => (
+    <div className="flex">
       {currencyCode && (
-        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-500">
+        <span className="flex shrink-0 items-center rounded-l-[8px] border-2 border-r-0 border-[var(--border)] bg-slate-100 px-4 text-sm font-semibold text-slate-600">
           {currencyCode}
         </span>
       )}
-      <input
-        id={id}
-        type="number"
-        step="0.01"
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChangeValue(e.target.value)}
-        className={`form-input pt-[12px] ${currencyCode ? 'pl-16' : ''}`}
-      />
+      {input}
     </div>
   );
 
-  /* Cotisations instances : texte libre, devise non imposée (ex. « EUR 1 200 ») */
-  const renderTextMoneyInput = (id, value, onChangeValue, placeholder) => (
+  // .form-input fixe border-radius : on le surcharge en inline quand le bloc devise est affiché
+  const addonInputStyle = currencyCode ? { borderTopLeftRadius: 0, borderBottomLeftRadius: 0 } : undefined;
+
+  /* Comptes locaux : montant numérique */
+  const renderMoneyInput = (id, value, onChangeValue, placeholder = '0.00') => renderCurrencyAddon(
+    <input
+      id={id}
+      type="number"
+      step="0.01"
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChangeValue(e.target.value)}
+      className="form-input min-w-0 pt-[12px]"
+      style={addonInputStyle}
+    />,
+  );
+
+  /* Cotisations instances : saisie alphanumérique conservée */
+  const renderTextMoneyInput = (id, value, onChangeValue, placeholder) => renderCurrencyAddon(
     <input
       id={id}
       type="text"
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChangeValue(e.target.value)}
-      className="form-input pt-[12px]"
-    />
+      className="form-input min-w-0 pt-[12px]"
+      style={addonInputStyle}
+    />,
   );
 
   /* Choix OUI / NON : NON masque la saisie et retire la partie du rapport */
@@ -370,13 +380,13 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
                 {renderMoneyInput('worksBalance', formData.worksBalance, (v) => updateField('worksBalance', v))}
               </FormField>
               <FormField label="Cotisation Siège" htmlFor="headQuartersFees">
-                {renderTextMoneyInput('headQuartersFees', formData.headQuartersFees, (v) => updateField('headQuartersFees', v), 'Ex : EUR 1 200')}
+                {renderTextMoneyInput('headQuartersFees', formData.headQuartersFees, (v) => updateField('headQuartersFees', v), 'Montant')}
               </FormField>
               <FormField label="Cotisation District" htmlFor="districtFees">
-                {renderTextMoneyInput('districtFees', formData.districtFees, (v) => updateField('districtFees', v), 'Ex : EUR 1 200')}
+                {renderTextMoneyInput('districtFees', formData.districtFees, (v) => updateField('districtFees', v), 'Montant')}
               </FormField>
               <FormField label="Cotisation Région" htmlFor="regionFees">
-                {renderTextMoneyInput('regionFees', formData.regionFees, (v) => updateField('regionFees', v), 'Ex : EUR 1 200')}
+                {renderTextMoneyInput('regionFees', formData.regionFees, (v) => updateField('regionFees', v), 'Montant')}
               </FormField>
             </div>
             <TextareaField label="Autres points sur la trésorerie" placeholder="Autres informations de trésorerie..." htmlFor="treasuryOther" value={formData.treasuryOther} onChange={(value) => updateField('treasuryOther', value)} />

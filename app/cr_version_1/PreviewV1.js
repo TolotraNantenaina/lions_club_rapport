@@ -2,7 +2,7 @@
 
 import { formatDate } from '../helpers/formatDate';
 import { getCompteRenduTitle, isVisiteLibreReunion } from '../../lib/reunionTypes';
-import { formatLocalAccountAmount, isTreasuryEnabled } from '../../lib/treasuryCurrency';
+import { formatTreasuryAmount, isTreasuryEnabled } from '../../lib/treasuryCurrency';
 
 /* ═══ A4 Page constants ═══════════════════════════════════ */
 export const PAGE_WIDTH = 1240;
@@ -230,19 +230,20 @@ export function getPreviewCRBlocks(data) {
     `${valueOrDash(data.memberTotal)} membres au total`,
   ].join(' - ');
   const treasuryItems = [
-    ['Solde compte administratif', formatLocalAccountAmount(data.adminBalance, currency)],
-    ['Solde compte œuvre', formatLocalAccountAmount(data.worksBalance, currency)],
+    ['Solde compte administratif', data.adminBalance],
+    ['Solde compte œuvre', data.worksBalance],
     ['Cotisation Siège', data.headQuartersFees],
     ['Cotisation District', data.districtFees],
     ['Cotisation Région', data.regionFees],
   ];
-  const treasuryBlocks = isTreasuryEnabled(data)
+  // Appelé à sa place dans la liste : le numéro suit celui de « Secrétariat »
+  const buildTreasuryBlocks = () => (isTreasuryEnabled(data)
     ? [
         { type: 'sectionTitle', title: numbered('Trésorerie') },
-        ...treasuryItems.map(([label, value]) => ({ type: 'labelLine', label, value: valueOrDash(value) })),
+        ...treasuryItems.map(([label, value]) => ({ type: 'labelLine', label, value: valueOrDash(formatTreasuryAmount(value, currency)) })),
         ...buildBulletBlocks(data.treasuryOther),
       ]
-    : [];
+    : []);
   const lcifBlocks = data.lcifEnabled === 'OUI'
     ? [{ type: 'subTitle', title: 'Point LCIF' }, ...buildBulletBlocks(data.pointLCIF)]
     : [];
@@ -266,7 +267,7 @@ export function getPreviewCRBlocks(data) {
       { title: 'Courriers reçus', value: data.receivedMails },
       { title: 'Courriers envoyés', value: data.sentMails },
     ]),
-    ...treasuryBlocks,
+    ...buildTreasuryBlocks(),
     ...buildGroupedSection(numbered('Commissions et actions'), [
       { title: 'POINT EME (Effectif)', value: data.pointEME },
       { title: 'POINT EML (Formation)', value: data.pointEML },

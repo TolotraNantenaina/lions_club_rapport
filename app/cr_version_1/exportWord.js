@@ -1,7 +1,7 @@
 'use client';
 
 import { getCompteRenduTitle, isVisiteLibreReunion } from '../../lib/reunionTypes';
-import { formatLocalAccountAmount, isTreasuryEnabled } from '../../lib/treasuryCurrency';
+import { formatTreasuryAmount, isTreasuryEnabled } from '../../lib/treasuryCurrency';
 import { formatDate } from '../helpers/formatDate';
 import { buildExportFileBaseNameFromFormData } from '../../lib/buildExportFileBaseName';
 
@@ -218,8 +218,7 @@ ${participants ? `<p style="font-family:${FONT_STACK};font-size:11pt;margin:0 0 
 }
 
 async function buildClassicWordBody(formData) {
-  const localAmount = (v) => formatLocalAccountAmount(v, formData.treasuryCurrency) || 'Non renseigné';
-  const freeText = (v) => (v && String(v).trim()) || 'Non renseigné';
+  const amount = (v) => formatTreasuryAmount(v, formData.treasuryCurrency) || 'Non renseigné';
   let sectionNumber = 0;
   const numbered = (title) => {
     sectionNumber += 1;
@@ -236,11 +235,11 @@ async function buildClassicWordBody(formData) {
       + subTitleHtml('Courriers envoyés') + linesToWordHtml(formData.sentMails),
     isTreasuryEnabled(formData)
       ? sectionTitleHtml(numbered('Trésorerie'))
-        + labelLineHtml('Solde compte administratif', localAmount(formData.adminBalance))
-        + labelLineHtml('Solde compte œuvre', localAmount(formData.worksBalance))
-        + labelLineHtml('Cotisation Siège', freeText(formData.headQuartersFees))
-        + labelLineHtml('Cotisation District', freeText(formData.districtFees))
-        + labelLineHtml('Cotisation Région', freeText(formData.regionFees))
+        + labelLineHtml('Solde compte administratif', amount(formData.adminBalance))
+        + labelLineHtml('Solde compte œuvre', amount(formData.worksBalance))
+        + labelLineHtml('Cotisation Siège', amount(formData.headQuartersFees))
+        + labelLineHtml('Cotisation District', amount(formData.districtFees))
+        + labelLineHtml('Cotisation Région', amount(formData.regionFees))
         + linesToWordHtml(formData.treasuryOther)
       : '',
     sectionTitleHtml(numbered('Commissions et actions'))
