@@ -44,6 +44,7 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
   const currencyCode = getCurrencyCode(formData.treasuryCurrency);
   const treasuryEnabled = isTreasuryEnabled(formData);
   const lcifEnabled = formData.lcifEnabled === 'OUI';
+  const interventionsLeoEnabled = formData.interventionsLeoEnabled === 'OUI';
 
   const filteredClubOptions = useMemo(
     () => filterClubsByTypeAndQuery(clubsData, selectedClubType, clubSearch),
@@ -143,8 +144,8 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
     />,
   );
 
-  /* Cotisations instances : saisie alphanumérique conservée */
-  const renderTextMoneyInput = (id, value, onChangeValue, placeholder) => renderCurrencyAddon(
+  /* Cotisations instances : texte libre, sans devise (souvent en Euro) */
+  const renderPlainTextInput = (id, value, onChangeValue, placeholder) => (
     <input
       id={id}
       type="text"
@@ -152,8 +153,7 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
       value={value}
       onChange={(e) => onChangeValue(e.target.value)}
       className="form-input min-w-0 pt-[12px]"
-      style={addonInputStyle}
-    />,
+    />
   );
 
   /* Choix OUI / NON : NON masque la saisie et retire la partie du rapport */
@@ -380,13 +380,13 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
                 {renderMoneyInput('worksBalance', formData.worksBalance, (v) => updateField('worksBalance', v))}
               </FormField>
               <FormField label="Cotisation Siège" htmlFor="headQuartersFees">
-                {renderTextMoneyInput('headQuartersFees', formData.headQuartersFees, (v) => updateField('headQuartersFees', v), 'Montant')}
+                {renderPlainTextInput('headQuartersFees', formData.headQuartersFees, (v) => updateField('headQuartersFees', v), 'Montant (ex. EUR 120)')}
               </FormField>
               <FormField label="Cotisation District" htmlFor="districtFees">
-                {renderTextMoneyInput('districtFees', formData.districtFees, (v) => updateField('districtFees', v), 'Montant')}
+                {renderPlainTextInput('districtFees', formData.districtFees, (v) => updateField('districtFees', v), 'Montant (ex. EUR 50)')}
               </FormField>
               <FormField label="Cotisation Région" htmlFor="regionFees">
-                {renderTextMoneyInput('regionFees', formData.regionFees, (v) => updateField('regionFees', v), 'Montant')}
+                {renderPlainTextInput('regionFees', formData.regionFees, (v) => updateField('regionFees', v), 'Montant (ex. EUR 30)')}
               </FormField>
             </div>
             <TextareaField label="Autres points sur la trésorerie" placeholder="Autres informations de trésorerie..." htmlFor="treasuryOther" value={formData.treasuryOther} onChange={(value) => updateField('treasuryOther', value)} />
@@ -420,7 +420,15 @@ export default function FormulaireV1({ data, onChange, clubsData = [], clubsLoad
                 <TextareaField label="" placeholder="Informations sur le LCIF..." htmlFor="pointLCIF" value={formData.pointLCIF} onChange={(value) => updateField('pointLCIF', value)} />
               )}
             </div>
-            <TextareaField label="Interventions LEO" placeholder="Interventions LEO..." htmlFor="interventionsLeo" value={formData.interventionsLeo} onChange={(value) => updateField('interventionsLeo', value)} />
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="text-[0.95em] font-semibold text-primary">Interventions LEO</span>
+                {renderYesNoToggle('interventionsLeoEnabled', 'À déclarer')}
+              </div>
+              {interventionsLeoEnabled && (
+                <TextareaField label="" placeholder="Interventions LEO..." htmlFor="interventionsLeo" value={formData.interventionsLeo} onChange={(value) => updateField('interventionsLeo', value)} />
+              )}
+            </div>
             <TextareaField label="Programme du mois" placeholder="Programme du mois..." htmlFor="monthProgram" value={formData.monthProgram} onChange={(value) => updateField('monthProgram', value)} />
 
             {/* ═══ CHAMP "DIVERS" — TipTap éditeur riche ═══════ */}

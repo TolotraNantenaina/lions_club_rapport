@@ -219,6 +219,7 @@ ${participants ? `<p style="font-family:${FONT_STACK};font-size:11pt;margin:0 0 
 
 async function buildClassicWordBody(formData) {
   const amount = (v) => formatTreasuryAmount(v, formData.treasuryCurrency) || 'Non renseigné';
+  const plainAmount = (v) => (String(v ?? '').trim() || 'Non renseigné');
   let sectionNumber = 0;
   const numbered = (title) => {
     sectionNumber += 1;
@@ -237,9 +238,9 @@ async function buildClassicWordBody(formData) {
       ? sectionTitleHtml(numbered('Trésorerie'))
         + labelLineHtml('Solde compte administratif', amount(formData.adminBalance))
         + labelLineHtml('Solde compte œuvre', amount(formData.worksBalance))
-        + labelLineHtml('Cotisation Siège', amount(formData.headQuartersFees))
-        + labelLineHtml('Cotisation District', amount(formData.districtFees))
-        + labelLineHtml('Cotisation Région', amount(formData.regionFees))
+        + labelLineHtml('Cotisation Siège', plainAmount(formData.headQuartersFees))
+        + labelLineHtml('Cotisation District', plainAmount(formData.districtFees))
+        + labelLineHtml('Cotisation Région', plainAmount(formData.regionFees))
         + linesToWordHtml(formData.treasuryOther)
       : '',
     sectionTitleHtml(numbered('Commissions et actions'))
@@ -250,7 +251,7 @@ async function buildClassicWordBody(formData) {
       + subTitleHtml('Point Marketing et Communication') + linesToWordHtml(formData.marketing),
     sectionTitleHtml(numbered('Autres points'))
       + (formData.lcifEnabled === 'OUI' ? subTitleHtml('Point LCIF') + linesToWordHtml(formData.pointLCIF) : '')
-      + subTitleHtml('Interventions LEO') + linesToWordHtml(formData.interventionsLeo)
+      + (formData.interventionsLeoEnabled === 'OUI' ? subTitleHtml('Interventions LEO') + linesToWordHtml(formData.interventionsLeo) : '')
       + subTitleHtml('Programme du mois') + linesToWordHtml(formData.monthProgram)
       + subTitleHtml('Divers')
       + await prepareRichHtmlForWord(

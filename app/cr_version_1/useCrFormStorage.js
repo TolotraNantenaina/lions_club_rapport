@@ -23,6 +23,9 @@ function migrateSavedForm(saved) {
   if (!next.lcifEnabled) {
     next.lcifEnabled = hasText(saved.pointLCIF) ? 'OUI' : 'NON';
   }
+  if (!next.interventionsLeoEnabled) {
+    next.interventionsLeoEnabled = hasText(saved.interventionsLeo) ? 'OUI' : 'NON';
+  }
   return next;
 }
 

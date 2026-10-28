@@ -229,9 +229,12 @@ export function getPreviewCRBlocks(data) {
     `${valueOrDash(data.guests)} invités`,
     `${valueOrDash(data.memberTotal)} membres au total`,
   ].join(' - ');
-  const treasuryItems = [
+  // Comptes locaux : devise ; cotisations instances : texte libre (sans devise)
+  const treasuryLocalItems = [
     ['Solde compte administratif', data.adminBalance],
     ['Solde compte œuvre', data.worksBalance],
+  ];
+  const treasuryFeeItems = [
     ['Cotisation Siège', data.headQuartersFees],
     ['Cotisation District', data.districtFees],
     ['Cotisation Région', data.regionFees],
@@ -240,12 +243,16 @@ export function getPreviewCRBlocks(data) {
   const buildTreasuryBlocks = () => (isTreasuryEnabled(data)
     ? [
         { type: 'sectionTitle', title: numbered('Trésorerie') },
-        ...treasuryItems.map(([label, value]) => ({ type: 'labelLine', label, value: valueOrDash(formatTreasuryAmount(value, currency)) })),
+        ...treasuryLocalItems.map(([label, value]) => ({ type: 'labelLine', label, value: valueOrDash(formatTreasuryAmount(value, currency)) })),
+        ...treasuryFeeItems.map(([label, value]) => ({ type: 'labelLine', label, value: valueOrDash(value) })),
         ...buildBulletBlocks(data.treasuryOther),
       ]
     : []);
   const lcifBlocks = data.lcifEnabled === 'OUI'
     ? [{ type: 'subTitle', title: 'Point LCIF' }, ...buildBulletBlocks(data.pointLCIF)]
+    : [];
+  const interventionsLeoBlocks = data.interventionsLeoEnabled === 'OUI'
+    ? [{ type: 'subTitle', title: 'Interventions LEO' }, ...buildBulletBlocks(data.interventionsLeo)]
     : [];
 
   const miscellaneousHtml = data.miscellaneous || '';
@@ -277,8 +284,7 @@ export function getPreviewCRBlocks(data) {
     ]),
     { type: 'sectionTitle', title: numbered('Autres points') },
     ...lcifBlocks,
-    { type: 'subTitle', title: 'Interventions LEO' },
-    ...buildBulletBlocks(data.interventionsLeo),
+    ...interventionsLeoBlocks,
     { type: 'subTitle', title: 'Programme du mois' },
     ...buildBulletBlocks(data.monthProgram),
     ...(hasMiscHtml

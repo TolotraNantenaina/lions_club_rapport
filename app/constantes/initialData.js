@@ -42,6 +42,7 @@ export const initialData = {
     pointLCIF: '',
     marketing: '',
     monthProgram: '',
+    interventionsLeoEnabled: 'NON',
     interventionsLeo: '',
     miscellaneous: '',
     visiteLibreHtml: '',
