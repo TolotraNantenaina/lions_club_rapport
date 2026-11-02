@@ -90,7 +90,7 @@ function measureElementHeight(el, widthPx) {
 /**
  * Split TipTap HTML into page-sized chunks.
  *
- * Algorithm (same as cr_version_1):
+ * Algorithm (same as app/_compte-rendu):
  *  1. Parse into top-level DOM elements (p, table, h1-h6, ul, ol…)
  *  2. Measure each element's rendered height
  *  3. Accumulate until cumulative height exceeds availableHeight → new chunk

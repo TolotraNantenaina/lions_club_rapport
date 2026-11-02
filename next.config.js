@@ -26,6 +26,12 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_BUILD_ID: BUILD_ID,
   },
+  async redirects() {
+    return [
+      // Ancienne URL du compte rendu v1, désormais servi sur « / ».
+      { source: '/cr_version_1', destination: '/', permanent: true },
+    ];
+  },
   async rewrites() {
     return {
       // `beforeFiles` : la réécriture prime sur le service statique de Next,

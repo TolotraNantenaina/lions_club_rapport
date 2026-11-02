@@ -1,366 +1,330 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { initialData } from './constantes/initialData';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { useClubsData } from './helpers/useClubsData';
-import Formulaire from './components/formulaire';
-import { getPreviewCRBlocks, PreviewCRPage , PAGE_HEIGHT, PAGE_WIDTH, PAGE_BOTTOM_SAFE_SPACE} from './components/preview';
-import { renderToStaticMarkup } from 'react-dom/server';
+import FormulaireV1 from './_compte-rendu/FormulaireV1';
 import { ProcessingLoader } from './components/processingLoader';
 import { JpgDownloadModal } from './components/JpgDownloadModal';
-import { base64ToBlob } from './helpers/bas64ToBlob';
-import { prepareHtml2CanvasClone } from './helpers/html2canvasUtils';
-import html2canvas from 'html2canvas';
-import { buildExportFileBaseNameFromFormData } from '../lib/buildExportFileBaseName';
+import { useCrFormStorage } from './_compte-rendu/useCrFormStorage';
+import {
+  exportMultiPageJpg,
+  exportMultiPagePdf,
+  downloadSingleJpg,
+  generatePreviewImagesFromFormData,
+} from './_compte-rendu/exportUtils';
+import { exportMultiPageWord } from './_compte-rendu/exportWord';
+import { getCompteRenduPageSubtitle } from '../lib/reunionTypes';
+import { validateTreasuryCurrencyForExport } from '../lib/treasuryCurrency';
+import { formatDate } from './helpers/formatDate';
 
+/**
+ * CR Version 1 — Page principale.
+ *
+ * Copie exacte de la page d'origine avec les modifications ciblées :
+ *  1. Champ "Divers" remplacé par un éditeur TipTap riche
+ *  2. Persistance localStorage (Offline-First)
+ *  3. Export JPG multi-pages avec logique anti-coupure
+ */
+export default function CrVersion1Page() {
+  const { formData, setFormData, resetFormData: storageReset, initialized } = useCrFormStorage();
+  const [toast, setToast] = useState('');
+  const [apercuUrls, setApercuUrls] = useState([]);
+  const [apercuValide, setApercuValide] = useState(false);
+  const [apercuLoading, setApercuLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const { clubsData, clubsLoading, clubsError } = useClubsData();
+  const [downloadModal, setDownloadModal] = useState(null);
+  const [pdfExporting, setPdfExporting] = useState(false);
+  const [wordExporting, setWordExporting] = useState(false);
+  /* Incrémenté au reset pour remonter le formulaire (éditeurs TipTap, recherche club…) */
+  const [formKey, setFormKey] = useState(0);
 
-export default function Home() {
-    const [formData, setFormData] = useState(initialData);
-    const [toast, setToast] = useState('');
-    const [apercuUrls, setApercuUrls] = useState([]);
-    const [apercuValide, setApercuValide] = useState(false);
-    const [apercuLoading, setApercuLoading] = useState(false);
-    const [currentPage, setCurrentPage] = useState(0);
-    const { clubsData, clubsLoading, clubsError } = useClubsData();
-    const [downloadModal, setDownloadModal] = useState(null);
+  const pageSubtitle = getCompteRenduPageSubtitle(
+    formData.reunionType,
+    formData.meetingDate ? formatDate(formData.meetingDate) : '',
+  );
 
-    const isEmpty = apercuUrls.length === 0;
-    const isProcessing = apercuUrls.length === 0 && apercuLoading;
-    const isSuccess = apercuUrls.length > 0 && apercuValide && !apercuLoading;
-    const isError = apercuUrls.length === 0 && !apercuLoading && apercuValide;
+  /* ── Derived state ─────────────────────────────────────── */
+  const isEmpty = apercuUrls.length === 0;
+  const isProcessing = apercuUrls.length === 0 && apercuLoading;
+  const isSuccess = apercuUrls.length > 0 && apercuValide && !apercuLoading;
+  const isError = apercuUrls.length === 0 && !apercuLoading && apercuValide;
 
-    useEffect(() => {
-        if (apercuUrls.length > 0) {
-        setCurrentPage(0);
-        }
-    }, [apercuUrls.length]);
+  useEffect(() => {
+    if (apercuUrls.length > 0) setCurrentPage(0);
+  }, [apercuUrls.length]);
 
-    const currentImage = apercuUrls[currentPage] ?? apercuUrls[0] ?? "";
-    const hasMultiple = apercuUrls.length > 1;
+  const currentImage = apercuUrls[currentPage] ?? apercuUrls[0] ?? '';
+  const hasMultiple = apercuUrls.length > 1;
 
-    const showToast = (message) => {
-        setToast(message);
-        window.clearTimeout(window.toastTimeout);
-        window.toastTimeout = window.setTimeout(() => setToast(''), 3500);
-    };
+  /* ── Toast ─────────────────────────────────────────────── */
+  const showToast = useCallback((message) => {
+    setToast(message);
+    window.clearTimeout(window.toastTimeout);
+    window.toastTimeout = window.setTimeout(() => setToast(''), 3500);
+  }, []);
 
-    const resetForm = () => {
-        if (window.confirm('Êtes-vous sûr de vouloir réinitialiser tous les champs ?')) {
-            setFormData(initialData);
-            showToast('✓ Formulaire réinitialisé');
-            setApercuUrls([]);
-            setApercuValide(false);
-            setApercuLoading(false);
-            setCurrentPage(0);
-        }
-    };
+  /* ── Reset ─────────────────────────────────────────────── */
+  const resetForm = useCallback(() => {
+    if (window.confirm('Êtes-vous sûr de vouloir réinitialiser tous les champs ?')) {
+      storageReset();
+      setFormKey((k) => k + 1);
+      setDownloadModal(null);
+      setApercuUrls([]);
+      setApercuValide(false);
+      setApercuLoading(false);
+      setCurrentPage(0);
+      showToast('✓ Formulaire réinitialisé');
+    }
+  }, [storageReset, showToast]);
 
-    const createPreviewContainer = (htmlString) => {
-        const tempDiv = document.createElement('div');
-        tempDiv.style.width = `${PAGE_WIDTH}px`;
-        tempDiv.style.height = `${PAGE_HEIGHT}px`;
-        tempDiv.style.background = '#ffffff';
-        tempDiv.style.position = 'fixed';
-        tempDiv.style.left = '-9999px';
-        tempDiv.style.top = '0';
-        tempDiv.style.zIndex = '9999';
-        tempDiv.innerHTML = htmlString;
-        document.body.appendChild(tempDiv);
+  const guardExport = useCallback(() => {
+    const check = validateTreasuryCurrencyForExport(formData);
+    if (!check.ok) {
+      showToast(check.message);
+      return false;
+    }
+    return true;
+  }, [formData, showToast]);
 
-        return tempDiv;
-    };
+  /* ── Aperçu ────────────────────────────────────────────── */
+  const apercuJpg = useCallback(async () => {
+    if (!guardExport()) return;
+    setApercuLoading(true);
+    setApercuValide(false);
 
-    const isPreviewPageOverflowing = (blocks, pageNumber) => {
-        const htmlString = renderToStaticMarkup(<PreviewCRPage blocks={blocks} pageNumber={pageNumber} headerData={formData} />);
-        const tempDiv = createPreviewContainer(htmlString);
-        const pageElement = tempDiv.querySelector('article') || tempDiv.firstElementChild;
-        const contentElement = tempDiv.querySelector('[data-preview-flow="true"]');
+    const validImages = await generatePreviewImagesFromFormData(formData, showToast);
+    setApercuUrls(validImages);
+    setApercuValide(true);
+    setCurrentPage(0);
+    setApercuLoading(false);
+  }, [formData, showToast, guardExport]);
 
-        if (!pageElement || !contentElement) {
-            document.body.removeChild(tempDiv);
-            return false;
-        }
+  /* ── Export JPG ─────────────────────────────────────────── */
+  const exportJpg = useCallback(async () => {
+    if (!guardExport()) return;
+    setDownloadModal({ baseName: '', images: [], isLoading: true });
 
-        const pageRect = pageElement.getBoundingClientRect();
-        const contentRect = contentElement.getBoundingClientRect();
-        const isOverflowing = contentRect.bottom > pageRect.bottom - PAGE_BOTTOM_SAFE_SPACE;
+    const { baseName, images } = await exportMultiPageJpg(formData, showToast);
 
-        document.body.removeChild(tempDiv);
+    if (images.length === 0) {
+      setDownloadModal(null);
+      return;
+    }
 
-        return isOverflowing;
-    };
+    setDownloadModal({ baseName, images, isLoading: false });
+  }, [formData, showToast, guardExport]);
 
-    const buildDynamicPreviewPages = () => {
-        const blocks = getPreviewCRBlocks(formData);
-        const pages = [];
-        let currentBlocks = [];
+  /* ── Export PDF ─────────────────────────────────────────── */
+  const exportPdf = useCallback(async () => {
+    if (pdfExporting) return;
+    if (!guardExport()) return;
+    setPdfExporting(true);
+    try {
+      const ok = await exportMultiPagePdf(formData, showToast);
+      if (ok) showToast('PDF téléchargé');
+    } catch (err) {
+      console.error(err);
+      showToast('❌ Erreur lors de la génération du PDF');
+    } finally {
+      setPdfExporting(false);
+    }
+  }, [formData, pdfExporting, showToast, guardExport]);
 
-        blocks.forEach((block) => {
-            const candidateBlocks = [...currentBlocks, block];
-            const pageNumber = pages.length + 1;
+  /* ── Export Word ────────────────────────────────────────── */
+  const exportWord = useCallback(async () => {
+    if (wordExporting) return;
+    if (!guardExport()) return;
+    setWordExporting(true);
+    try {
+      await exportMultiPageWord(formData);
+      showToast('Document Word téléchargé');
+    } catch (err) {
+      console.error(err);
+      showToast('❌ Erreur lors de la génération du Word');
+    } finally {
+      setWordExporting(false);
+    }
+  }, [formData, wordExporting, showToast, guardExport]);
 
-            if (currentBlocks.length > 0 && isPreviewPageOverflowing(candidateBlocks, pageNumber)) {
-                pages.push(currentBlocks);
-                currentBlocks = [block];
-            } else {
-                currentBlocks = candidateBlocks;
-            }
-        });
-
-        if (currentBlocks.length > 0) {
-            pages.push(currentBlocks);
-        }
-
-        return pages.map((blocks, index) => (
-            <PreviewCRPage key={`preview-cr-${index}`} blocks={blocks} pageNumber={index + 1} headerData={formData} />
-        ));
-    };
-
-    const renderHtmlToJpg = async (htmlString, errorMessage) => {
-        const tempDiv = createPreviewContainer(htmlString);
-        const sourceRoot = tempDiv.firstElementChild || tempDiv;
-
-        try {
-            const canvas = await html2canvas(tempDiv, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                useCORS: true,
-                allowTaint: true,
-                width: PAGE_WIDTH,
-                height: PAGE_HEIGHT,
-                windowHeight: PAGE_HEIGHT,
-                logging: false,
-                letterRendering: true,
-                onclone: (clonedDocument, clonedElement) => {
-                    prepareHtml2CanvasClone(sourceRoot, clonedDocument, clonedElement.firstElementChild || clonedElement);
-                }
-            });
-
-            return canvas.toDataURL('image/jpeg', 0.95);
-        } catch (error) {
-            console.error(error);
-            showToast(errorMessage);
-            return null;
-        } finally {
-            document.body.removeChild(tempDiv);
-        }
-    };
-
-    const generatePreviewImages = async (errorMessage) => {
-        await document.fonts.ready;
-
-        const prevuePages = buildDynamicPreviewPages();
-        const htmlStrings = prevuePages.map((Page) => renderToStaticMarkup(Page));
-        const imagesUrls = await Promise.all(
-            htmlStrings.map((htmlString) => renderHtmlToJpg(htmlString, errorMessage))
-        );
-
-        return imagesUrls.filter(Boolean);
-    };
-
-    const apercuJpg = async () => {
-        setApercuLoading(true);
-        setApercuValide(false);
-
-        const validImages = await generatePreviewImages('❌ Erreur lors de la génération de l’aperçu');
-        setApercuUrls(validImages);
-        setApercuValide(true);
-        setCurrentPage(0);
-        setApercuLoading(false);
-    };
-
-    const buildExportBaseName = () => buildExportFileBaseNameFromFormData(formData);
-
-    const downloadSingleJpg = (imageUrl, fileName) => {
-        const blob = base64ToBlob(imageUrl, 'image/jpeg');
-        const link = document.createElement('a');
-        const objectUrl = URL.createObjectURL(blob);
-
-        link.href = objectUrl;
-        link.download = fileName;
-        link.click();
-
-        window.setTimeout(() => {
-            URL.revokeObjectURL(objectUrl);
-        }, 1000);
-    };
-
-    const exportJpg = async () => {
-        const baseName = buildExportBaseName();
-
-        setDownloadModal({
-            baseName,
-            images: [],
-            isLoading: true,
-        });
-
-        const imagesUrls = await generatePreviewImages('❌ Erreur lors de la génération du JPG');
-
-        if (imagesUrls.length === 0) {
-            setDownloadModal(null);
-            return;
-        }
-
-        setDownloadModal({
-            baseName,
-            images: imagesUrls,
-            isLoading: false,
-        });
-    };
-
-    const closeDownloadModal = () => {
-        setDownloadModal(null);
-    };
-
+  /* ── Don't render until localStorage is loaded ──────────── */
+  if (!initialized) {
     return (
-        <main className="mx-8 max-[480px]:mx-4 min-h-screen">
-
-            <div className="text-slate-900 pt-8 bg-transparent">
-
-                <header className="relative mb-7 text-white mx-auto w-full min-[1200px]:max-w-[990px]">
-
-                    <div className="text-center">
-                        <div className="mx-auto flex h-[60px] items-center justify-center gap-2 py-3">
-                            <img src="/ico_lions_club_transparent.png" alt="Logo Lions Club" className="mb-2 h-[55px] w-[55px]" />
-                            <h1 className="mb-2 text-[1.8rem] font-bold tracking-tight sm:text-[2.5rem]"> Lions Club</h1>
-                        </div>
-                        <p className="text-[1.1em]">Compte-Rendu de Réunion Statutaire</p>
-                    </div>
-
-                    {/*<Link
-                        href="/parametre"
-                        className="absolute right-0 top-1/4 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-white transition hover:text-white/80"
-                        aria-label="Ouvrir les paramètres d’import"
-                    >
-                        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
-                        </svg>
-                    </Link>*/}
-
-                </header>
-
-            </div>
-
-            <Formulaire
-                data={formData}
-                onChange={setFormData}
-                clubsData={clubsData}
-                clubsLoading={clubsLoading}
-                clubsError={clubsError}
-            />
-
-            <div className="text-slate-900 pt-4 pb-8 bg-transparent">
-                <div className="mx-auto grid gap-8">
-                    <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto">
-                        <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
-                            <div className="grid gap-4">
-                                <button type="button" onClick={apercuJpg} className="btn-primary">
-                                    📊 Aperçu du rapport
-                                </button>
-                            </div>
-                            <div className="grid gap-4 grid-cols-2">
-                                <button type="button" onClick={exportJpg} className="btn-secondary">
-                                    📸 Générer JPG
-                                </button>
-                                <button type="button" onClick={resetForm} className="btn-reset">
-                                    🔄 Réinitialiser
-                                </button>
-                            </div>
-                        </section>
-                    </div>
-
-                    <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto">
-                        <section className="rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
-                            <div className="mb-6 text-center items-center px-4 py-3 text-primary text-[1.4em] text-semibold">
-                                <h1 className="text-2xl text-center font-bold text-primary">📄 Aperçu du Rapport</h1>
-                            </div>
-                            <div className={`relative rounded-xl border border-border overflow-hidden bg-muted min-h-64
-        transition-all duration-300`}>
-
-                                <div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 transition-opacity duration-300
-          ${isEmpty ? `opacity-100` : `opacity-0 pointer-events-none`}  light-bg`}>
-                                    <div className='text-center mb-5'>
-                                        <h2 className='text-2xl font-bold text-primary'>LIONS CLUB</h2>
-                                        <p className="text-sm text-muted-foreground text-center text-accent">Compte-Rendu de Réunion Statutaire</p>
-                                    </div>
-                                    <div className="w-12 h-12 rounded-2xl bg-border/60 flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground text-center text-dark-grey">Cliquez sur &quot;Aperçu du Rapport&quot; pour générer un aperçu</p>
-                                    <p className="text-sm text-muted-foreground text-center text-dark-grey">Votre image convertie apparaîtra ici</p>
-                                </div>
-
-                                <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300
-          ${isProcessing ? `opacity-100` : `opacity-0 pointer-events-none`}`}>
-                                    <ProcessingLoader label="Conversion du document en image…" />
-                                </div>
-
-                                <div className={`transition-opacity duration-500
-          ${isSuccess ? `opacity-100` : `opacity-0 pointer-events-none`}`}>
-                                    <div className="p-3 flex flex-col items-center gap-4">
-                                        {hasMultiple && (<button
-                                            type="button"
-                                            disabled={currentPage === 0}
-                                            onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
-                                            className="text-sm text-muted-foreground disabled:opacity-40 text-left mr-auto"
-                                        > Précédent </button>)}
-                                        {hasMultiple && (<button
-                                            type="button"
-                                            disabled={currentPage >= apercuUrls.length - 1}
-                                            onClick={() => setCurrentPage((p) => Math.min(p + 1, apercuUrls.length - 1))}
-                                            className="text-sm text-muted-foreground disabled:opacity-40 text-right ml-auto mt-[-35px]"
-                                        > Suivant </button>)}
-                                        <img
-                                            src={currentImage}
-                                            alt="Converted document preview"
-                                            className="w-full rounded-lg shadow-custom object-contain max-h-[520px] animate-fade-in-up"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 transition-opacity duration-300
-          ${isError ? `opacity-100` : `opacity-0 pointer-events-none`}`}>
-                                    <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950 flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                        </svg>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground">La conversion a échoué — veuillez réessayer</p>
-                                </div>
-                            </div>
-                        </section>
-                    </div>
-                </div>
-            </div>
-
-            {
-                toast && (
-                    <div className="fixed right-5 top-5 z-50 rounded-2xl bg-emerald-500 px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-slate-950/15">
-                        {toast}
-                    </div>
-                )
-            }
-
-            {downloadModal && (
-                <JpgDownloadModal
-                    baseName={downloadModal.baseName}
-                    images={downloadModal.images}
-                    isLoading={downloadModal.isLoading}
-                    onClose={closeDownloadModal}
-                    onDownloadPage={downloadSingleJpg}
-                />
-            )}
-            
-            <footer className="fixed bottom-2 right-6 z-40 opacity-70 pointer-events-none select-none text-center">
-                <span className="text-xs text-slate-500 font-mono">
-                    v{require('../package.json').version} - {require('../package.json').name}
-                </span>
-            </footer>
-   
-        </main >
+      <main className="mx-8 min-h-screen h-full bg-slate-950">
+        <div className="flex items-center justify-center min-h-screen">
+          <ProcessingLoader label="Chargement du formulaire…" />
+        </div>
+      </main>
+ 
     );
+  }
+
+  return (
+    <main className="mx-8 max-[480px]:mx-4 min-h-screen">
+
+      {/* ═══ Global header ═══════════════════════════════════ */}
+      <div className="text-slate-900 pt-8 bg-transparent">
+        <header className="relative mb-7 text-white mx-auto w-full min-[1200px]:max-w-[990px]">
+          <div className="text-center">
+            <div className="mx-auto flex h-[60px] items-center justify-center gap-2 py-3">
+              <Image src="/ico_lions_club_transparent.png" alt="Logo Lions Club" width={55} height={55} className="mb-2 h-[55px] w-[55px]" />
+              <h1 className="mb-2 text-[1.8rem] font-bold tracking-tight sm:text-[2.5rem]">Lions Club</h1>
+            </div>
+            <p className="text-[1.1em]">{pageSubtitle}</p>
+          </div>
+        </header>
+      </div>
+
+      {/* ═══ Formulaire (TipTap "Divers") ═══════════════════ */}
+      <div className={pdfExporting || wordExporting ? 'pointer-events-none select-none' : undefined}>
+        <FormulaireV1
+          key={formKey}
+          data={formData}
+          onChange={setFormData}
+          clubsData={clubsData}
+          clubsLoading={clubsLoading}
+          clubsError={clubsError}
+          showToast={showToast}
+        />
+      </div>
+
+      {/* ═══ Buttons ═════════════════════════════════════════ */}
+      <div className="text-slate-900 pt-4 pb-8 bg-transparent">
+        <div className="mx-auto grid gap-8">
+          <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto">
+            <section className="space-y-6 rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+              <div className="grid gap-4 grid-cols-2">
+                <button type="button" onClick={apercuJpg} disabled={pdfExporting || wordExporting} className="btn-primary hover:scale-105 transition-all disabled:pointer-events-none disabled:opacity-60">
+                  📊 Aperçu du rapport
+                </button>
+                <button type="button" onClick={resetForm} disabled={pdfExporting || wordExporting} className="btn-reset hover:scale-105 transition-all disabled:pointer-events-none disabled:opacity-60">
+                  🔄 Réinitialiser
+                </button>
+              </div>
+              <div className="grid gap-4 grid-cols-1 min-[640px]:grid-cols-3">
+                <button type="button" onClick={exportJpg} disabled={pdfExporting || wordExporting} className="btn-secondary hover:scale-105 transition-all disabled:pointer-events-none disabled:opacity-60">
+                  📸 Exporter JPG
+                </button>
+                <button
+                  type="button"
+                  onClick={exportPdf}
+                  disabled={pdfExporting || wordExporting}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#7a1f2b] px-[1.25rem] py-[0.95rem] font-bold text-white shadow-lg shadow-[#7a1f2b]/30 transition-all hover:scale-105 hover:bg-[#952636] hover:shadow-xl active:scale-95 disabled:pointer-events-none disabled:opacity-60"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="#d4af37">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm1 7V3.5L19.5 9zM8.5 17.5v-4H10c.8 0 1.3.4 1.3 1.1 0 .7-.5 1.1-1.3 1.1H9.3v1.8zm.8-2.4h.6c.3 0 .5-.2.5-.5s-.2-.5-.5-.5h-.6zm3 2.4v-4h1.1c1.1 0 1.8.6 1.8 2s-.7 2-1.8 2zm.8-1.6h.3c.5 0 .9-.3.9-1.1s-.4-1.1-.9-1.1h-.3zm2.6 1.6v-4H17c.9 0 1.4.4 1.4 1.1 0 .5-.3.9-.7 1l.9 1.9h-.9l-.8-1.7h-.4v1.7zm.8-2.4h.5c.3 0 .5-.2.5-.5s-.2-.5-.5-.5h-.5z" />
+                  </svg>
+                  Exporter PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={exportWord}
+                  disabled={pdfExporting || wordExporting}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1a3a52] px-[1.25rem] py-[0.95rem] font-bold text-white shadow-lg shadow-[#1a3a52]/30 transition-all hover:scale-105 hover:bg-[#2c5aa0] hover:shadow-xl active:scale-95 disabled:pointer-events-none disabled:opacity-60"
+                >
+                  📄 Exporter Word
+                </button>
+              </div>
+            </section>
+          </div>
+
+          {/* ═══ Preview area ═════════════════════════════════ */}
+          <div className="grid gap-8 min-[1200px]:min-w-[990px] min-[1200px]:mx-auto">
+            <section className="rounded-[12px] bg-white/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+              <div className="mb-6 text-center items-center px-4 py-3 text-primary text-[1.4em] text-semibold">
+                <h1 className="text-2xl text-center font-bold text-primary">📄 Aperçu du Rapport</h1>
+              </div>
+              <div className={`relative rounded-xl border border-border overflow-hidden bg-muted min-h-64 transition-all duration-300`}>
+
+                {/* Empty state */}
+                <div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 ${isEmpty ? 'opacity-100' : 'opacity-0 pointer-events-none'} light-bg`}>
+                  <div className="text-center mb-5">
+                    <h2 className="text-2xl font-bold text-primary">LIONS CLUB</h2>
+                    <p className="text-sm text-muted-foreground text-center text-accent">{pageSubtitle}</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-2xl bg-border/60 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm text-muted-foreground text-center text-dark-grey">Cliquez sur &quot;Aperçu du Rapport&quot; pour générer un aperçu</p>
+                </div>
+
+                {/* Processing */}
+                <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${isProcessing ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                  <ProcessingLoader label="Conversion du document en image…" />
+                </div>
+
+                {/* Success */}
+                <div className={`transition-opacity duration-500 ${isSuccess ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                  <div className="p-3 flex flex-col items-center gap-4">
+                    {hasMultiple && (
+                      <button type="button" disabled={currentPage === 0}
+                        onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
+                        className="text-sm text-muted-foreground disabled:opacity-40 text-left mr-auto"
+                      >Précédent</button>
+                    )}
+                    {hasMultiple && (
+                      <button type="button" disabled={currentPage >= apercuUrls.length - 1}
+                        onClick={() => setCurrentPage((p) => Math.min(p + 1, apercuUrls.length - 1))}
+                        className="text-sm text-muted-foreground disabled:opacity-40 text-right ml-auto mt-[-35px]"
+                      >Suivant</button>
+                    )}
+                    {currentImage && (
+                      <Image src={currentImage} alt="Converted document preview" width={1240} height={1740} unoptimized
+                        className="h-auto w-full max-h-[520px] rounded-lg object-contain shadow-custom animate-fade-in-up" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Error */}
+                <div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 ${isError ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                  <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm text-muted-foreground">La conversion a échoué — veuillez réessayer</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      {pdfExporting && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/55 backdrop-blur-[2px]">
+          <div className="rounded-2xl bg-white px-8 py-4 shadow-2xl">
+            <ProcessingLoader label="Génération du PDF…" />
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Toast ═══════════════════════════════════════════ */}
+      {toast && (
+        <div className="fixed right-5 top-5 z-50 rounded-2xl bg-emerald-500 px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-slate-950/15">
+          {toast}
+        </div>
+      )}
+
+      {/* ═══ Download modal ══════════════════════════════════ */}
+      {downloadModal && (
+        <JpgDownloadModal
+          baseName={downloadModal.baseName}
+          images={downloadModal.images}
+          isLoading={downloadModal.isLoading}
+          onClose={() => setDownloadModal(null)}
+          onDownloadPage={downloadSingleJpg}
+        />
+      )}
+
+      {/* ═══ Footer ══════════════════════════════════════════ */}
+      <footer className="fixed bottom-2 right-6 z-40 opacity-70 pointer-events-none select-none text-center">
+        <span className="text-xs text-slate-500 font-mono">
+          v{require('../package.json').version} - {require('../package.json').name}
+        </span>
+      </footer>
+    </main>
+  );
 }

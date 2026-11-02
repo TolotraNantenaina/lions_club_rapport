@@ -35,10 +35,10 @@ Build publishing to orphan branch: `npm run publish:build`
 
 ## Architecture
 
-- **`app/page.js`** — main form + preview + JPG export (client component)
+- **`app/page.js`** — compte rendu (ex-`/cr_version_1`, redirigé vers `/`) : form + preview + JPG/PDF/Word export (client component)
 - **`app/parametre/page.js`** — admin/import page (XLSX club import, logo upload)
-- **`app/components/preview.js`** — report page rendering with fixed dimensions (1240×1740px)
-- **`app/components/formulaire.js`** — meeting form with club search autocomplete
+- **`app/_compte-rendu/`** — private (non-routed) folder: `PreviewV1.js` (report rendering, fixed 1240×1740px), `FormulaireV1.js` (meeting form + club autocomplete), TipTap editors, export utils, form storage
+- **`app/editeur/page.js`** — free-form TipTap editor (`version_editor`)
 - **`lib/`** — shared logic: Excel parsing, club data validation, logo optimization, server storage
 - **`app/api/import/`** — API routes for XLSX and logo import
 - **`public/data/clubs.json`** — club data (source of truth for club list)
